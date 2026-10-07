@@ -1,0 +1,14 @@
+import app from "./src/app.js";
+import env from "./src/config/env.js";
+
+
+const PORT = env.PORT;
+
+app.get("/api/test",(req,res)=> {
+    res.send("hello!");
+})
+
+
+app.listen(PORT,()=> {
+    console.log("Server is running..!");
+});
