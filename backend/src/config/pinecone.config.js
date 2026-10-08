@@ -1,0 +1,6 @@
+const { Pinecone } = require('@pinecone-database/pinecone');
+import env from './env.js';
+
+export const pinecone = new Pinecone({
+    apiKey: env.PINECONE_API_KEY
+});
