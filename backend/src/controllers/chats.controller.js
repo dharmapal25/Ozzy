@@ -27,7 +27,7 @@ const testFiles = async (req, res) => {
 
         // single chunk embedding
         const Vector = await ContentEmbedding(singleChunk);
-
+        console.log(Vector)
         DemoPincone.push({
           id: `${file.filename}_chunk_${i}_${Date.now()}`,
           values: Vector, 

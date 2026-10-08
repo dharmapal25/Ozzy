@@ -1,18 +1,35 @@
-import {gemini} from "../config/gemini.config.js"
+import { gemini } from "../config/gemini.config.js";
 
-const ContentEmbedding = async () => {
-        let EmbeddingValue = await gemini.models.embedContent({
-            model: 'gemini-embedding-2',
-            contents: [
-                'explain react',
-            ],
+const ContentEmbedding = async (text) => {
+    try {
+        // Check valid text
+        // if (!text || typeof text !== "string") {
+        //     throw new Error("Embedding for required string text");
+        // }
+
+
+        const response = await gemini.models.embedContent({
+            model: "gemini-embedding-2",
+            contents: [text],
+            // contents: ['explain react'],
             config: {
                 outputDimensionality: 4 // 4 Dimensions in the output vector
             }
-        })
+            // config: { outputDimensionality: 768 } //  dimension default 768 
+        });
 
-        return EmbeddingValue
-}
+        // Pinecone values of array  [0.012, -0.045, ...]
+        const vectorValues = response.embeddings[0].values;
+
+        // console.log("first >> ", response?.embeddings[0].values)
+
+        return vectorValues;
 
 
-export default ContentEmbedding
+    } catch (error) {
+        console.error("Gemini Embedding Error:", error.message);
+        throw error;
+    }
+};
+
+export default ContentEmbedding;
