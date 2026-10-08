@@ -7,8 +7,8 @@ const chunksOfInfomation = async (text) => {
         chunkOverlap: 200,
     });
 
-    const chunkedDocs = await textSplitter.createDocuments([text]);
-    // const chunkedDocs = await textSplitter.splitText(text);
+    // const chunkedDocs = await textSplitter.createDocuments([text]);
+    const chunkedDocs = await textSplitter.splitText(text);
 
     return chunkedDocs;
 

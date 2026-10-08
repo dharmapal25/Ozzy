@@ -1,29 +1,58 @@
+import ContentEmbedding from "../services/embedding.service.js";
 import FilesDataReader from "../services/file.service.js";
 import chunksOfInfomation from "../utils/chucks.js";
 
 const testFiles = async (req, res) => {
-    const { information } = req.body;
+  const { information } = req.body;
 
-    try {
+  try {
+    let filesInfo = FilesDataReader(information);
 
-        // information
-
-        let filesInfo = FilesDataReader(information);
-
-        // console.log(filesInfo)
-
-        const info = await chunksOfInfomation(filesInfo);
-
-        res.json({
-            // data: info
-            data: filesInfo
-        })
+    let DemoPincone = [];
 
 
-    } catch (err) {
-        console.log("Error : ", err)
+    for (let file of filesInfo) {
+      
+
+      if (!file.info || typeof file.info !== 'string') continue;
+
+      // only content chunks
+      const chunksText = await chunksOfInfomation(file.info);
+      console.log(`File: ${file.filename} -> Total Chunks: ${chunksText.length}`);
+
+      // vector record 
+      for (let i = 0; i < chunksText.length; i++) {
+        const singleChunk = chunksText[i];
+
+
+        // single chunk embedding
+        const Vector = await ContentEmbedding(singleChunk);
+
+        DemoPincone.push({
+          id: `${file.filename}_chunk_${i}_${Date.now()}`,
+          values: Vector, 
+          metadata: {
+            Text: singleChunk,                  // exact text
+            fileName: file.filename,
+            fileExtension: file.filetype,
+            fileLocation: file.FileLocation
+          }
+        });
+      }
     }
-}
 
+    return res.json({
+      totalVectors: DemoPincone.length,
+      data: filesInfo,
+      DemoPincone
+    });
+
+  } catch (err) {
+    console.log("Error : ", err);
+    return res.status(500).json({ 
+        error: err.message 
+    });
+  }
+};
 
 export { testFiles };
