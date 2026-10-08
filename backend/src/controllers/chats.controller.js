@@ -1,5 +1,6 @@
 import ContentEmbedding from "../services/embedding.service.js";
 import FilesDataReader from "../services/file.service.js";
+import { InsertFilesData } from "../services/pinecone.service.js";
 import chunksOfInfomation from "../utils/chucks.js";
 
 const testFiles = async (req, res) => {
@@ -12,7 +13,7 @@ const testFiles = async (req, res) => {
 
 
     for (let file of filesInfo) {
-      
+
 
       if (!file.info || typeof file.info !== 'string') continue;
 
@@ -27,19 +28,34 @@ const testFiles = async (req, res) => {
 
         // single chunk embedding
         const Vector = await ContentEmbedding(singleChunk);
-        console.log(Vector)
-        DemoPincone.push({
-          id: `${file.filename}_chunk_${i}_${Date.now()}`,
-          values: Vector, 
-          metadata: {
-            Text: singleChunk,                  // exact text
-            fileName: file.filename,
-            fileExtension: file.filetype,
-            fileLocation: file.FileLocation
-          }
-        });
+        console.log(Vector.length, "Vector length : ", Vector);
+        // DemoPincone.push({
+        //   id: `${file.filename}_chunk_${i}_${Date.now()}`,
+        //   values: Vector, 
+        //   metadata: {
+        //     Text: singleChunk,                  // exact text
+        //     fileName: file.filename,
+        //     fileExtension: file.filetype,
+        //     fileLocation: file.FileLocation
+        // }
+        // });
+
+        let Id = `${file.filename}_chunk_${i}_${Date.now()}`
+        let metadata = {
+          Text: singleChunk,                  // exact text
+          fileName: file.filename,
+          fileExtension: file.filetype,
+          fileLocation: file.FileLocation
+        }
+        
+        console.log("metadata :------------------------------------------ ", Vector)
+
+
+        await InsertFilesData(Id, Vector, metadata)
+
       }
     }
+
 
     return res.json({
       totalVectors: DemoPincone.length,
@@ -49,8 +65,8 @@ const testFiles = async (req, res) => {
 
   } catch (err) {
     console.log("Error : ", err);
-    return res.status(500).json({ 
-        error: err.message 
+    return res.status(500).json({
+      error: err.message
     });
   }
 };

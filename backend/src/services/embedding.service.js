@@ -12,10 +12,9 @@ const ContentEmbedding = async (text) => {
             model: "gemini-embedding-2",
             contents: [text],
             // contents: ['explain react'],
-            config: {
-                outputDimensionality: 4 // 4 Dimensions in the output vector
-            }
-            // config: { outputDimensionality: 768 } //  dimension default 768 
+            config: { 
+                outputDimensionality: 1024 
+            } //  dimension witout pass default 768 
         });
 
         // Pinecone values of array  [0.012, -0.045, ...]

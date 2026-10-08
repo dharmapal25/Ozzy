@@ -20,6 +20,7 @@
     "express": "^5.2.1",
     "groq-sdk": "^1.6.0",
     "mime-types": "^3.0.2",
+    "mongoose": "^9.11.1",
     "nodemon": "^3.1.14",
     "pdfreader": "^3.0.8",
     "unzipper": "^0.12.5"

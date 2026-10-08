@@ -1,4 +1,4 @@
-const { Pinecone } = require('@pinecone-database/pinecone');
+import { Pinecone } from '@pinecone-database/pinecone';
 import env from './env.js';
 
 export const pinecone = new Pinecone({
