@@ -27,9 +27,9 @@ const InsertFilesData = async (namespaceId, fileId, Vector, metadata) => {
 
 const SearchFilesData = async (Question) => {
 
-  const vectorQuery = await ContentEmbedding(Question);
+  const vectorQuery = await ContentEmbedding(workId, Question);
 
-  const namespace = pcIndex.namespace("WORK_CHAT_MONGO_ID");
+  const namespace = pcIndex.namespace(workId);
 
 
   let results = await namespace.query({

@@ -1,5 +1,5 @@
 import express from "express";
-import { receiveFiles, testFiles, uploadFiles } from "../controllers/chats.controller.js";
+import { receiveFilesAll, testFiles, uploadFiles } from "../controllers/chats.controller.js";
 
 const chatRoute = express.Router();
 
@@ -12,7 +12,7 @@ chatRoute.post("/upload-files", uploadFiles);
 
 
 // api/chats/search-files
-chatRoute.post("/search-files", receiveFiles);
+chatRoute.post("/search-files", receiveFilesAll);
 
 
 export default chatRoute;

@@ -76,111 +76,144 @@ const testFiles = async (req, res) => {
 
 const uploadFiles = async (req, res) => {
   const { information, message, workId } = req.body;
+  const userId = req.user?._id;
+
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication required"
+    });
+  }
 
   try {
     let filesInfo = FilesDataReader(information);
 
-    let chat;
+    let WorkDoc;
+    let namespaceWorkId;
 
     if (!workId) {
-      chat = await Work.create({
-        userId,
-        title: "Title",
-
+      WorkDoc = await Work.create({
+        title: filesInfo[0]?.filename || "Workspace Project",
         messages: [
           {
             role: "user",
-            content: null,
-            ProjectStructure: null,
-
+            content: "Workspace Project Structure",
+            ProjectStructure: filesInfo,
           },
           {
             role: "assistant",
-            content: "demo",
+            content: "Workspace initialized successfully.",
           },
         ],
       });
+
+      namespaceWorkId = WorkDoc._id.toString();
+    } else {
+      WorkDoc = await Work.findById(workId);
+
+
+      if (!WorkDoc) {
+        return res.status(404).json({
+          message: "InValid Id"
+        });
+      }
+
+      // assign namespaceWorkId when workId exists
+      namespaceWorkId = workId.toString();
     }
-
-    let namespaceWorkId = chat._id
-
 
     // chunks + embedding
     for (let file of filesInfo) {
-
-
       if (!file.info || typeof file.info !== 'string') continue;
 
       // only content chunks
       const chunksText = await chunksOfInfomation(file.info);
 
-
       // vector record 
       for (let i = 0; i < chunksText.length; i++) {
         const singleChunk = chunksText[i];
 
-
         // single chunk embedding
         const Vector = await ContentEmbedding(singleChunk);
 
-
-        let Id = `${file.filename}_chunk_${i}_${Date.now()}`
+        let Id = `${file.filename}_chunk_${i}_${Date.now()}`;
         let metadata = {
           Text: singleChunk,                  // exact text
           fileName: file.filename,
           fileExtension: file.filetype,
           fileLocation: file.FileLocation
-        }
+        };
 
-        await InsertFilesData(namespaceWorkId, Id, Vector, metadata)
-
+        await InsertFilesData(namespaceWorkId, Id, Vector, metadata);
       }
     }
 
 
+    // vector question
     const VectorQuestion = await ContentEmbedding(message);
 
-    const PineconeTopKData = await SearchFilesData(VectorQuestion);
+    // pinecone top 5 related info
+    const PineconeTopKData = await SearchFilesData(namespaceWorkId, VectorQuestion);
+
+    //  Extract actual text
+    const contextText = Array.isArray(PineconeTopKData?.matches)
+      ? PineconeTopKData.matches
+        .map(match => `[File: ${match.metadata?.fileName}]\n${match.metadata?.Text}`)
+        .join("\n\n---\n\n")
+      : "";
+
+
+    // History
+    const recentHistory = (WorkDoc.messages || [])
+      .slice(-6)
+      .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+      .join("\n");
+
+
 
     const prompt = `
-    
-    USER QUESTION : ${message}
+Context from files:
+${contextText}
 
-    TOP PINECONE QUESTION RELATED RESPONSE : ${PineconeTopKData}
+Conversation History:
+${recentHistory}
 
-    `
+User Question: ${message}
 
+Provide a helpful, precise answer based strictly on the provided context.
+    `;
+
+
+    // LLM
     const response = await GroqResponse(prompt);
 
-    if (workId) {
-      await Work.findByIdAndUpdate(
-        workId,
-        {
-          $push: {
-            messages: [
 
-              {
-                role: "user",
-                content: message,
-                ProjectStructure: JSON.stringify(filesInfo),
-              },
-
-              {
-                role: "assistant",
-                content: queryResponse?.message,
-              },
-
-            ],
-          },
+    // message and AI response for both paths
+    await Work.findByIdAndUpdate(
+      namespaceWorkId,
+      {
+        $push: {
+          messages: [
+            {
+              role: "user",
+              content: message,
+              ProjectStructure: JSON.stringify(filesInfo),
+            },
+            {
+              role: "assistant",
+              content: response,
+            },
+          ],
         },
-        { new: true }
-      );
-    }
+      },
+      { new: true }
+    );
 
     return res.json({
       data: filesInfo,
-      "response": response,
-      chat
+      response: response,
+      workId: namespaceWorkId
     });
 
   } catch (err) {
@@ -189,37 +222,40 @@ const uploadFiles = async (req, res) => {
       error: err.message
     });
   }
-}
+};
 
 
-const receiveFiles = async (req, res) => {
-  const { message } = req.body;
+const receiveFilesAll = async (req, res) => {
 
   try {
 
-    const FoundData = await SearchFilesData(message);
+    const userId = req.user?._id;
 
-    const context = `
-    similer VECTOR DATA : ${FoundData}
-    USER QUESTION : ${message}
-    `
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authorized"
+      });
+    }
 
-    const AiResponse = await GroqResponse(context);
-
-
+    const allWorksChat = await Work
+      .find({ userId })
+      .sort({ updatedAt: -1 })
+      .limit(10);
 
     return res.json({
-      data: AiResponse,
-      
+      success: true,
+      allWorksChat
     });
 
   } catch (err) {
-    console.log("Error : ", err);
+    console.error("ReceiveFilesAll Error:", err);
     return res.status(500).json({
       error: err.message
     });
+
   }
 }
 
 
-export { testFiles, uploadFiles, receiveFiles };
+export { testFiles, uploadFiles, receiveFilesAll };
