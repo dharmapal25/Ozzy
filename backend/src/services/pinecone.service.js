@@ -4,12 +4,13 @@ import ContentEmbedding from "./embedding.service.js";
 
 let pcIndex = pinecone.Index("ezzy") // same as index name in pinecone
 
+// function pineconeNamespace(name) {
+//    return pcIndex.namespace("WORK_CHAT_MONGO_ID");
+// }
 
-const namespace = pcIndex.namespace("WORK_CHAT_MONGO_ID");
+const InsertFilesData = async (namespaceId, fileId, Vector, metadata) => {
 
-const InsertFilesData = async (fileId, Vector, metadata) => {
-
-  let pineconeData = await namespace.upsert({
+  let pineconeData = await pcIndex.namespace(namespaceId).upsert({
     records: [
       {
         id: fileId,

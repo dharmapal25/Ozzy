@@ -1,3 +1,4 @@
+import Work from "../models/work.model.js";
 import ContentEmbedding from "../services/embedding.service.js";
 import FilesDataReader from "../services/file.service.js";
 import GroqResponse from "../services/groq.service.js";
@@ -74,12 +75,37 @@ const testFiles = async (req, res) => {
 
 
 const uploadFiles = async (req, res) => {
-  const { information } = req.body;
+  const { information, message, workId } = req.body;
 
   try {
     let filesInfo = FilesDataReader(information);
 
+    let chat;
 
+    if (!workId) {
+      chat = await Work.create({
+        userId,
+        title: "Title",
+
+        messages: [
+          {
+            role: "user",
+            content: null,
+            ProjectStructure: null,
+
+          },
+          {
+            role: "assistant",
+            content: "demo",
+          },
+        ],
+      });
+    }
+
+    let namespaceWorkId = chat._id
+
+
+    // chunks + embedding
     for (let file of filesInfo) {
 
 
@@ -88,12 +114,15 @@ const uploadFiles = async (req, res) => {
       // only content chunks
       const chunksText = await chunksOfInfomation(file.info);
 
+
       // vector record 
       for (let i = 0; i < chunksText.length; i++) {
         const singleChunk = chunksText[i];
 
+
         // single chunk embedding
         const Vector = await ContentEmbedding(singleChunk);
+
 
         let Id = `${file.filename}_chunk_${i}_${Date.now()}`
         let metadata = {
@@ -103,13 +132,55 @@ const uploadFiles = async (req, res) => {
           fileLocation: file.FileLocation
         }
 
-        await InsertFilesData(Id, Vector, metadata)
+        await InsertFilesData(namespaceWorkId, Id, Vector, metadata)
 
       }
     }
 
+
+    const VectorQuestion = await ContentEmbedding(message);
+
+    const PineconeTopKData = await SearchFilesData(VectorQuestion);
+
+    const prompt = `
+    
+    USER QUESTION : ${message}
+
+    TOP PINECONE QUESTION RELATED RESPONSE : ${PineconeTopKData}
+
+    `
+
+    const response = await GroqResponse(prompt);
+
+    if (workId) {
+      await Work.findByIdAndUpdate(
+        workId,
+        {
+          $push: {
+            messages: [
+
+              {
+                role: "user",
+                content: message,
+                ProjectStructure: JSON.stringify(filesInfo),
+              },
+
+              {
+                role: "assistant",
+                content: queryResponse?.message,
+              },
+
+            ],
+          },
+        },
+        { new: true }
+      );
+    }
+
     return res.json({
-      data: filesInfo
+      data: filesInfo,
+      "response": response,
+      chat
     });
 
   } catch (err) {
@@ -119,7 +190,6 @@ const uploadFiles = async (req, res) => {
     });
   }
 }
-
 
 
 const receiveFiles = async (req, res) => {
@@ -136,10 +206,11 @@ const receiveFiles = async (req, res) => {
 
     const AiResponse = await GroqResponse(context);
 
-      
+
 
     return res.json({
-      data: AiResponse
+      data: AiResponse,
+      
     });
 
   } catch (err) {
