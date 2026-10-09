@@ -1,4 +1,5 @@
 import { pinecone } from "../config/pinecone.config.js";
+import ContentEmbedding from "./embedding.service.js";
 
 
 let pcIndex = pinecone.Index("ezzy") // same as index name in pinecone
@@ -6,20 +7,43 @@ let pcIndex = pinecone.Index("ezzy") // same as index name in pinecone
 
 const namespace = pcIndex.namespace("WORK_CHAT_MONGO_ID");
 
-const InsertFilesData = async (fileId, Vector,metadata) => {
+const InsertFilesData = async (fileId, Vector, metadata) => {
 
-let pineconeData = await namespace.upsert({
-  records: [
-    {
-      id: fileId,
-      values: Vector,
-      metadata: metadata || {}
-    }
-  ]
-});
+  let pineconeData = await namespace.upsert({
+    records: [
+      {
+        id: fileId,
+        values: Vector,
+        metadata: metadata || {}
+      }
+    ]
+  });
 
-    console.log("Inserted data into Pinecone:", pineconeData);
+  console.log("Inserted data into Pinecone:", pineconeData);
 
 }
 
-export {InsertFilesData}
+
+const SearchFilesData = async (Question) => {
+
+  const vectorQuery = await ContentEmbedding(Question);
+
+  const namespace = pcIndex.namespace("WORK_CHAT_MONGO_ID");
+
+
+  let results = await namespace.query({
+    vector: vectorQuery,
+    topK: 5,
+    includeMetadata: true
+  });
+
+
+  console.log("Search data into Pinecone:", results);
+
+  return results
+
+}
+
+
+
+export { InsertFilesData, SearchFilesData }

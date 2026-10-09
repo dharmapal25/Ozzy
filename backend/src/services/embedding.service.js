@@ -17,6 +17,7 @@ const ContentEmbedding = async (text) => {
             } //  dimension witout pass default 768 
         });
 
+        
         // Pinecone values of array  [0.012, -0.045, ...]
         const vectorValues = response.embeddings[0].values;
 
