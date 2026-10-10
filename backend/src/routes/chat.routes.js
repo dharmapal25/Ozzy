@@ -1,18 +1,23 @@
 import express from "express";
-import { receiveFilesAll, testFiles, uploadFiles } from "../controllers/chats.controller.js";
+import { receiveFiles, receiveFilesAll, testFiles, uploadFiles } from "../controllers/chats.controller.js";
 
 const chatRoute = express.Router();
 
-// api/chats/test
+// api/work/test
 chatRoute.post("/test", testFiles);
 
 
-// api/chats/upload-files
+// api/work/upload-files
 chatRoute.post("/upload-files", uploadFiles);
 
 
-// api/chats/search-files
-chatRoute.post("/search-files", receiveFilesAll);
+// api/work/receive-all-files
+chatRoute.post("/receive-all-files", receiveFiles);
+
+
+// api/work/receive-all-files/:workId
+chatRoute.post("/receive-file/:workId", receiveFilesAll);
+
 
 
 export default chatRoute;

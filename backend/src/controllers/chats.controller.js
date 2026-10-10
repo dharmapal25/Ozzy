@@ -225,6 +225,46 @@ Provide a helpful, precise answer based strictly on the provided context.
 };
 
 
+const receiveFiles = async (req, res) => {
+
+  try {
+
+    const { workId } = req.params
+
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authorized"
+      });
+    }
+
+    const WorksChat = await Work.findById(workId);
+
+    if (!WorksChat) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message : WorksChat
+    });
+
+
+  } catch (err) {
+    console.error("ReceiveFilesAll Error:", err);
+    return res.status(500).json({
+      error: err.message
+    });
+
+  }
+}
+
+
 const receiveFilesAll = async (req, res) => {
 
   try {
@@ -258,4 +298,4 @@ const receiveFilesAll = async (req, res) => {
 }
 
 
-export { testFiles, uploadFiles, receiveFilesAll };
+export { testFiles, uploadFiles, receiveFiles, receiveFilesAll };
