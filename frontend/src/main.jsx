@@ -5,26 +5,33 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Login from './pages/Login.jsx'
 import Workspace from './pages/Workspace.jsx'
 import Home from './pages/Home.jsx'
+import { InputProvider } from './context/inputContext.jsx'
 
 
 const Routers = createBrowserRouter([
   {
-    path : "/",
-    element : <App/>
+    path: "/",
+    element: <App />
   },
   {
-    path : "/login",
-    element : <Login/>
-  },
-
-  {
-    path : "/work",
-    element : <Workspace/>
+    path: "/login",
+    element: <Login />
   },
 
   {
-    path : "/work/:workId",
-    element : <Workspace/>
+    path: "/work",
+    element:
+      <InputProvider>
+        <Workspace />
+      </InputProvider>
+  },
+
+  {
+    path: "/work/:workId",
+    element:
+      <InputProvider>
+        <Workspace />
+      </InputProvider>
   }
 
 ])

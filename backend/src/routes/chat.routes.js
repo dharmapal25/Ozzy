@@ -12,11 +12,11 @@ chatRoute.post("/upload-files", uploadFiles);
 
 
 // api/work/receive-all-files
-chatRoute.post("/receive-all-files", receiveFiles);
+chatRoute.get("/receive-all-files", receiveFiles);
 
 
 // api/work/receive-all-files/:workId
-chatRoute.post("/receive-file/:workId", receiveFilesAll);
+chatRoute.get("/receive-file/:workId", receiveFilesAll);
 
 
 
