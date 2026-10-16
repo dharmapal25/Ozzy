@@ -3,15 +3,30 @@ import Sidebar from "./Sidebar";
 import Input from "./Input";
 import { FiMenu, FiMoreVertical } from "react-icons/fi";
 import "../style/Workspace.css";
+import { useConversation } from "../context/workContext";
 
 const Workspace = () => {
+
+  const {
+    sendWorkConversationData,
+    WorkConversationIdData,
+    LoadWorkAllConversationData,
+    setCurWork,
+    curWork,
+    setWorks,
+    Works,
+    load,
+    error
+  } = useConversation()
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentWorkId, setCurrentWorkId] = useState(null);
-  const [works, setWorks] = useState([
-    { _id: "1", title: "Project Docs Analysis" },
-    { _id: "2", title: "API Authentication Flow" }
-  ]);
+  // const [works, setWorks] = useState([
+  //   { _id: "1", title: "Project Docs Analysis" },
+  //   { _id: "2", title: "API Authentication Flow" }
+  // ]);
+  
   const [messages, setMessages] = useState([]);
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);

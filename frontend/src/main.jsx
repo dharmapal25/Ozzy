@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
@@ -6,6 +5,7 @@ import Login from './pages/Login.jsx'
 import Workspace from './pages/Workspace.jsx'
 import Home from './pages/Home.jsx'
 import { InputProvider } from './context/inputContext.jsx'
+import { WorkProvider } from './context/workContext.jsx'
 
 
 const Routers = createBrowserRouter([
@@ -21,9 +21,14 @@ const Routers = createBrowserRouter([
   {
     path: "/work",
     element:
+
+    <WorkProvider>
+
       <InputProvider>
         <Workspace />
       </InputProvider>
+
+    </WorkProvider>
   },
 
   {

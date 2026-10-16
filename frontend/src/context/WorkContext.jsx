@@ -3,15 +3,17 @@ import { loadAllWorkConversations, loadWorkConversationById, sendWorkConversatio
 import { useNavigate, useParams } from 'react-router-dom';
 
 
-const workContext = useContext();
+export const workContext = useContext();
 
-export const workProvider = ({ children }) => {
+export const WorkProvider = ({ children }) => {
 
     const navigate = useNavigate();
     const { workId } = useParams();
 
     const [error, setError] = useState(null)
     const [load, setLoad] = useState(false)
+    const [Works, setWorks] = useState([]);
+    const [curWork, setCurWork] = useState(null)
 
 
 
@@ -33,7 +35,7 @@ export const workProvider = ({ children }) => {
         try {
             setLoad(true);
             const { data } = await sendWorkConversation(information, message, workId);
-
+            setCurWork(data)
 
 
 
@@ -51,7 +53,7 @@ export const workProvider = ({ children }) => {
         try {
             setLoad(true);
             const response = await loadWorkConversationById(workId);
-
+            setCurWork(response)
         } catch (err) {
             handleError(err)
         }
@@ -63,7 +65,7 @@ export const workProvider = ({ children }) => {
         try {
             setLoad(true);
             const response = await loadAllWorkConversations();
-
+            setWorks(response)
         } catch (err) {
             handleError(err)
         }
@@ -73,8 +75,21 @@ export const workProvider = ({ children }) => {
 
 
     return (
-        <workContext.Provider >
+        <workContext.Provider
+            value={{
+                sendWorkConversationData,
+                WorkConversationIdData,
+                LoadWorkAllConversationData,
+                setCurWork,
+                curWork,
+                setWorks,
+                Works,
+                load,
+                error
+            }} >
+
             {children}
+
         </workContext.Provider>
     )
 
