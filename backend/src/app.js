@@ -19,6 +19,6 @@ app.use(cors({
 connectMongoDB();
 
 
-app.use("/api/chat", chatRoute);
+app.use("/api/work", chatRoute);
 
 export default app
