@@ -35,6 +35,11 @@ const workSchema = new mongoose.Schema({
             default: ""
         },
 
+        sources: {
+            type: [String],
+            default: []
+        },
+
         createdAt: {
             type: Date,
             default: Date.now

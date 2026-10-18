@@ -101,6 +101,7 @@ const Workspace = () => {
           _id: `assistant-${Date.now()}`,
           role: "assistant",
           content: result.response,
+          sources: result.sources || [],
         },
       ]);
       if (!activeWorkId && result?.workId) {
@@ -201,7 +202,15 @@ const Workspace = () => {
             <div className="chat-messages-container">
               {messages.map((m, idx) => (
                 <div key={idx} className={`chat-message ${m.role}`}>
-                  {m.content}
+                  <div className="chat-message-content">{m.content}</div>
+                  {m.role === "assistant" && Array.isArray(m.sources) && m.sources.length > 0 && (
+                    <div className="chat-message-sources">
+                      <span>Related files:</span>
+                      {m.sources.map((source) => (
+                        <span className="chat-message-source" key={source}>{source}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
               {isSending && (

@@ -160,6 +160,11 @@ const uploadFiles = async (req, res) => {
         .map(match => `[File: ${match.metadata?.fileName}]\n${match.metadata?.Text}`)
         .join("\n\n---\n\n")
       : "";
+    const relatedFiles = [...new Set(
+      (PineconeTopKData?.matches || [])
+        .map(match => match.metadata?.fileName)
+        .filter(fileName => typeof fileName === "string" && fileName.length > 0)
+    )];
 
 
     // History
@@ -173,6 +178,8 @@ const uploadFiles = async (req, res) => {
     const prompt = `
 Context from files:
 ${contextText}
+
+When context from files is available, answer using that context and name the relevant files in your answer. If no relevant file context is available, say so instead of inventing file-based facts.
 
 Conversation History:
 ${recentHistory}
@@ -202,6 +209,7 @@ Provide a helpful, precise answer based strictly on the provided context.
               {
                 role: "assistant",
                 content: response,
+                sources: relatedFiles,
               },
             ],
           },
@@ -213,6 +221,7 @@ Provide a helpful, precise answer based strictly on the provided context.
     return res.json({
       data: filesInfo,
       response: response,
+      sources: relatedFiles,
       workId: namespaceWorkId
     });
 
