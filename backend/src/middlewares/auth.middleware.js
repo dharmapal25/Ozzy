@@ -1,31 +1,39 @@
 import jwt from "jsonwebtoken";
 
-export const authenticateUser = async (req, res, next) => {
-    try {
-        // Direct cookie 
-        const token = req.cookies?.token;
 
-        // Token exist 
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Access Denied: No token provided in cookies",
-            });
-        }
+// Verify the JWT without a database query
+const verifyToken = (req, res, next) => {
+  try {
+    // Get the token from the cookie
+    const token = req.cookies?.token;
 
-        // Token verify 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Decoded payload userId set in the req.user 
-        req.user = decoded;
-
-        next();
-
-    } catch (error) {
-        return res.status(401).json({
-            success: false,
-            message: "Invalid or expired token",
-            error: error.message,
-        });
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Token missing",
+      });
     }
+
+    // Verify the token and read its payload
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    // Store the user ID from the token
+    req.user = {
+      id: payload.id,
+    };
+
+    next();
+
+    
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token",
+    });
+  }
 };
+
+export default verifyToken;

@@ -76,7 +76,7 @@ const testFiles = async (req, res) => {
 
 const uploadFiles = async (req, res) => {
   const { information, message, workId } = req.body;
-  const userId = req.user?._id;
+  const userId = req.user.id;
 
 
   if (!userId) {
@@ -231,7 +231,7 @@ const receiveFiles = async (req, res) => {
 
     const { workId } = req.params
 
-    const userId = req.user?._id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
@@ -269,7 +269,7 @@ const receiveFilesAll = async (req, res) => {
 
   try {
 
-    const userId = req.user?._id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
