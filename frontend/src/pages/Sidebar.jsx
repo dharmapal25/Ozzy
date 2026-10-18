@@ -1,22 +1,25 @@
 import React from "react";
 import { RiChatNewLine } from "react-icons/ri";
-import { IoSettingsOutline } from "react-icons/io5";
-import { FiPlus, FiMenu, FiX, FiGlobe } from "react-icons/fi";
+import { FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 
-const Sidebar = ({ isOpen, onClose, works = [], onSelectWork, onNewWork, currentWorkId }) => {
+const Sidebar = ({ isOpen, onClose, works = [], onSelectWork, onNewWork, currentWorkId, user, onLogout }) => {
   return (
     <aside className={`work-sidebar ${isOpen ? "open" : ""}`}>
-      
+
 
       <div className="sidebar-header">
+
         <button className="icon-btn add-btn" onClick={onNewWork} title="New Work">
           <RiChatNewLine />
         </button>
+
         <button className="icon-btn close-btn" onClick={onClose} title="Close Sidebar">
           {isOpen ? <FiX /> : <FiMenu />}
         </button>
+
       </div>
+
 
 
       {/* Works Titles List */}
@@ -35,14 +38,25 @@ const Sidebar = ({ isOpen, onClose, works = [], onSelectWork, onNewWork, current
         </ul>
       </div>
 
-      {/* Footer: Profile and Settings/Globe */}
+
+
+      {/* Profile and Settings/Globe */}
       <div className="sidebar-footer">
         <div className="user-info">
-          <FaUserCircle className="user-avatar" />
-          <span className="user-name">Profile</span>
+
+          {
+            user?.avatar ?
+              <img className="user-avatar" src={user.avatar} alt="" />
+              : <FaUserCircle className="user-avatar" />
+          }
+
+          <span className="user-name">{user?.displayName || user?.email || "Profile"}</span>
+
         </div>
-        <button className="icon-btn footer-btn">
-          <IoSettingsOutline />
+
+
+        <button className="icon-btn footer-btn" onClick={onLogout} title="Log out">
+          <span>Logout</span>
         </button>
       </div>
     </aside>

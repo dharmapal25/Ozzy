@@ -5,6 +5,8 @@ import Login from './pages/Login.jsx'
 import Workspace from './pages/Workspace.jsx'
 import { InputProvider } from './context/inputContext.jsx'
 import { WorkProvider } from './context/WorkContext.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
+import { RequireAuth, RequireGuest } from './components/AuthRoutes.jsx'
 
 
 const Routers = createBrowserRouter([
@@ -14,12 +16,12 @@ const Routers = createBrowserRouter([
   },
   {
     path: "/login",
-    element: <Login />
+    element: <RequireGuest><Login /></RequireGuest>
   },
 
   {
     path: "/work",
-    element:
+    element: <RequireAuth>
 
     <WorkProvider>
 
@@ -28,21 +30,25 @@ const Routers = createBrowserRouter([
       </InputProvider>
 
     </WorkProvider>
+    </RequireAuth>
   },
 
   {
     path: "/work/:workId",
-    element:
+    element: <RequireAuth>
       <WorkProvider>
         <InputProvider>
           <Workspace />
         </InputProvider>
       </WorkProvider>
+    </RequireAuth>
   }
 
 ])
 
 
 createRoot(document.getElementById('root')).render(
-  <RouterProvider router={Routers} />
+  <AuthProvider>
+    <RouterProvider router={Routers} />
+  </AuthProvider>
 )

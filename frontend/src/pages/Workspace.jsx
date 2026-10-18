@@ -4,29 +4,29 @@ import Input from "./Input";
 import { FiMenu, FiMoreVertical } from "react-icons/fi";
 import "../style/Workspace.css";
 import { useConversation } from "../context/WorkContext";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Workspace = () => {
 
   const {
-    sendWorkConversationData,
-    WorkConversationIdData,
-    LoadWorkAllConversationData,
-    setCurWork,
-    curWork,
-    setWorks,
     Works,
-    load,
     error
   } = useConversation()
+
+  const navigate = useNavigate();
+  const { user, logout, error: authError } = useAuth();
+
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentWorkId, setCurrentWorkId] = useState(null);
+
   // const [works, setWorks] = useState([
   //   { _id: "1", title: "Project Docs Analysis" },
   //   { _id: "2", title: "API Authentication Flow" }
   // ]);
-  
+
   const [messages, setMessages] = useState([]);
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
@@ -47,10 +47,22 @@ const Workspace = () => {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch {
+      // The auth context keeps the logout error available to the user.
+    }
+  };
+
   return (
     <div className="workspace-wrapper">
       {/* Backdrop for mobile when sidebar is open */}
-      {sidebarOpen && <div className="sidebar-backdrop" onClick={toggleSidebar}></div>}
+
+      {
+        sidebarOpen && <div className="sidebar-backdrop" onClick={toggleSidebar}></div>
+      }
 
       {/* Sidebar Component */}
       <Sidebar
@@ -60,6 +72,8 @@ const Workspace = () => {
         onSelectWork={handleSelectWork}
         onNewWork={handleNewWork}
         currentWorkId={currentWorkId}
+        user={user}
+        onLogout={handleLogout}
       />
 
       {/* Main Work Frame */}
@@ -78,6 +92,7 @@ const Workspace = () => {
               <FiMoreVertical />
             </button>
 
+
             {menuOpen && (
               <div className="dropdown-menu">
                 <button onClick={() => setMenuOpen(false)}>Share</button>
@@ -93,6 +108,11 @@ const Workspace = () => {
 
         {/* Workspace Body / Chat Area */}
         <div className="workspace-body">
+
+          {(error || authError) && (
+            <p className="workspace-error" role="alert">{error || authError}</p>
+          )}
+          
           {messages.length === 0 ? (
             <div className="empty-workspace-state">
               <p>Explain about your docs with other tasks.</p>
