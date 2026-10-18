@@ -2,6 +2,7 @@ import express from "express";
 import { googleCallback, getMe, logout } from "../controllers/auth.controller.js";
 import passport from "../config/passport.config.js";
 import verifyToken from "../middlewares/auth.middleware.js";
+import env from "../config/env.js";
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get(
     "/google/callback",
     passport.authenticate("google", {
         session: false,
-        failureRedirect: "http://localhost:5173/login",
+        failureRedirect: env.FRONTEND_URL + "/login",
     }),
     googleCallback
 );

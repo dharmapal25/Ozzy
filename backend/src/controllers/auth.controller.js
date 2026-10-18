@@ -1,11 +1,12 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import env from "../config/env.js";
 
 // Create a JWT for the user
 const createToken = (userId) => {
     return jwt.sign(
         { id: userId },
-        process.env.JWT_SECRET,
+        env.JWT_SECRET,
         { expiresIn: "7d" }
     );
 };
@@ -17,7 +18,7 @@ export const googleCallback = (req, res) => {
 
     res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/api",
         maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -57,7 +58,7 @@ export const getMe = async (req, res) => {
 export const logout = (req, res) => {
     res.clearCookie("token", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/api",
     });
