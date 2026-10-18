@@ -24,7 +24,7 @@ export const googleCallback = (req, res) => {
         maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // res.redirect("http://localhost:5173/work");
+    return res.redirect(`${env.FRONTEND_URL}/work`);
 };
 
 // Get the current user's profile

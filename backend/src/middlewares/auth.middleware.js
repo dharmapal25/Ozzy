@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import env from "../config/env.js";
 
 
 // Verify the JWT without a database query
@@ -17,7 +18,7 @@ const verifyToken = (req, res, next) => {
     // Verify the token and read its payload
     const payload = jwt.verify(
       token,
-      process.env.JWT_SECRET
+      env.JWT_SECRET
     );
 
     // Store the user ID from the token

@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 import Input from "./Input";
 import { FiMenu, FiMoreVertical } from "react-icons/fi";
 import "../style/Workspace.css";
-import { useConversation } from "../context/workContext";
+import { useConversation } from "../context/WorkContext";
 
 const Workspace = () => {
 
@@ -56,7 +56,7 @@ const Workspace = () => {
       <Sidebar
         isOpen={sidebarOpen}
         onClose={toggleSidebar}
-        works={works}
+        works={Works}
         onSelectWork={handleSelectWork}
         onNewWork={handleNewWork}
         currentWorkId={currentWorkId}

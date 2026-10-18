@@ -1,6 +1,7 @@
 import React from 'react';
 import { FcGoogle } from "react-icons/fc";
 import '../style/Login.css';
+import API from '../services/api';
 
 const Login = () => {
     return (
@@ -9,7 +10,10 @@ const Login = () => {
                 <h2 className="login-title">Login</h2>
                 <p className="login-subtitle">Welcome back! Please sign in to continue.</p>
 
-                <button className="google-btn">
+                <button
+                    className="google-btn"
+                    onClick={() => window.location.assign(`${API.defaults.baseURL}/auth/google`)}
+                >
                     <FcGoogle className="google-icon" />
                     <span>Login with Google</span>
                 </button>

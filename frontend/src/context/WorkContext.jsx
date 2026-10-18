@@ -1,9 +1,9 @@
-import React, { useContext, useState } from 'react'
+import React, { createContext, useContext, useState } from 'react'
 import { loadAllWorkConversations, loadWorkConversationById, sendWorkConversation } from '../services/Works';
 import { useNavigate, useParams } from 'react-router-dom';
 
 
-export const workContext = useContext();
+export const workContext = createContext(null);
 
 export const WorkProvider = ({ children }) => {
 
@@ -96,4 +96,12 @@ export const WorkProvider = ({ children }) => {
 
 }
 
-export const useConversation = () => useContext(workContext)
+export const useConversation = () => {
+    const context = useContext(workContext);
+
+    if (!context) {
+        throw new Error('useConversation must be used within a WorkProvider');
+    }
+
+    return context;
+};
