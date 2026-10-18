@@ -22,6 +22,7 @@ body {
 
 /* ================= SIDEBAR ================= */
 .work-sidebar {
+  flex: 0 0 260px;
   width: 260px;
   height: 100%;
   background-color: #0e0e0f;
@@ -29,8 +30,16 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.3s ease, width 0.3s ease;
+  overflow: hidden;
+  transition: flex-basis 0.3s ease, width 0.3s ease, transform 0.3s ease;
   z-index: 100;
+}
+
+.work-sidebar:not(.open) {
+  flex-basis: 0;
+  width: 0;
+  border-right: 0;
+  transform: translateX(-100%);
 }
 
 .sidebar-header {
@@ -86,11 +95,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   padding: 14px 16px;
   border-top: 1px solid #232733;
 }
 
 .user-info {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -99,8 +110,39 @@ body {
 }
 
 .user-avatar {
+  display: block;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
   font-size: 22px;
   color: #9ca3af;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footer-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px;
+  color: #9ca3af;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.footer-btn:hover {
+  color: #fff;
+  background-color: #242936;
 }
 
 /* ================= MAIN CONTENT ================= */
@@ -132,13 +174,22 @@ body {
   transform: translateX(-50%);
 }
 
-.mobile-menu-trigger {
-  display: none;
+.sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: #9ca3af;
   font-size: 20px;
   cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.sidebar-toggle-btn:hover {
+  color: #fff;
+  background-color: #242936;
 }
 
 /* ================= 3-DOTS DROPDOWN ================= */
@@ -222,6 +273,9 @@ body {
 
 .chat-messages-container {
   flex: 1;
+  width: 100%;
+  max-width: 768px;
+  align-self: center;
   overflow-y: auto;
   margin-bottom: 20px;
   display: flex;
@@ -232,9 +286,10 @@ body {
 .chat-message {
   padding: 12px 16px;
   border-radius: 8px;
-  max-width: 75%;
+  max-width: 100%;
   line-height: 1.5;
   font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
 .chat-message.user {
@@ -248,6 +303,17 @@ body {
   background-color: #15171e;
   color: #d1d5db;
   border: 1px solid #232733;
+}
+
+.typing-indicator {
+  color: #9ca3af;
+  animation: typing-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes typing-pulse {
+  50% {
+    opacity: 0.45;
+  }
 }
 
 .input-dock {
@@ -330,22 +396,29 @@ body {
 
 /* ================= MOBILE RESPONSIVE (ABSOLUTE SIDEBAR) ================= */
 @media (max-width: 768px) {
-  .mobile-menu-trigger {
-    display: block;
-  }
-
   .work-sidebar {
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
+    flex: none;
     width: 260px;
+    border-right: 1px solid #232733;
     transform: translateX(-100%); 
     box-shadow: 4px 0 16px rgba(0, 0, 0, 0.6);
   }
 
+  .work-sidebar:not(.open) {
+    width: 260px;
+    transform: translateX(-100%);
+  }
+
   .work-sidebar.open {
     transform: translateX(0); 
+  }
+
+  .sidebar-toggle-btn {
+    display: flex;
   }
 
   .sidebar-backdrop {

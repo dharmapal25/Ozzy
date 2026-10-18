@@ -9,19 +9,17 @@ const GroqResponse = async (prompt) => {
 
         messages: [
             {
+                role: 'system',
+                content: 'Answer the user clearly and accurately using the supplied context.',
+            },
+            {
                 role: 'user',
                 content: prompt,
             },
-            {
-                role: 'system',
-                content: 'string',
-            },
         ],
-    },)
+    });
 
-
-    console.log(response.choices[0].message.content)
-
+    return response.choices[0].message.content;
 }
 
 

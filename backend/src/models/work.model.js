@@ -32,7 +32,7 @@ const workSchema = new mongoose.Schema({
 
         ProjectStructure: {
             type: String,
-            default : {}
+            default: ""
         },
 
         createdAt: {

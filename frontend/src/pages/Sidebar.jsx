@@ -1,6 +1,6 @@
 import React from "react";
 import { RiChatNewLine } from "react-icons/ri";
-import { FiMenu, FiX } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 
 const Sidebar = ({ isOpen, onClose, works = [], onSelectWork, onNewWork, currentWorkId, user, onLogout }) => {
@@ -55,7 +55,8 @@ const Sidebar = ({ isOpen, onClose, works = [], onSelectWork, onNewWork, current
         </div>
 
 
-        <button className="icon-btn footer-btn" onClick={onLogout} title="Log out">
+        <button className="footer-btn" onClick={onLogout} title="Log out" aria-label="Log out">
+          <FiLogOut aria-hidden="true" />
           <span>Logout</span>
         </button>
       </div>

@@ -1,5 +1,4 @@
 import { pinecone } from "../config/pinecone.config.js";
-import ContentEmbedding from "./embedding.service.js";
 
 
 let pcIndex = pinecone.Index("ezzy") // same as index name in pinecone
@@ -25,12 +24,8 @@ const InsertFilesData = async (namespaceId, fileId, Vector, metadata) => {
 }
 
 
-const SearchFilesData = async (Question) => {
-
-  const vectorQuery = await ContentEmbedding(workId, Question);
-
-  const namespace = pcIndex.namespace(workId);
-
+const SearchFilesData = async (namespaceId, vectorQuery) => {
+  const namespace = pcIndex.namespace(namespaceId);
 
   let results = await namespace.query({
     vector: vectorQuery,

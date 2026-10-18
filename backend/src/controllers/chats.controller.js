@@ -78,7 +78,6 @@ const uploadFiles = async (req, res) => {
   const { information, message, workId } = req.body;
   const userId = req.user.id;
 
-
   if (!userId) {
     return res.status(401).json({
       success: false,
@@ -86,40 +85,39 @@ const uploadFiles = async (req, res) => {
     });
   }
 
+  if (typeof message !== "string" || !message.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "A message is required"
+    });
+  }
+
   try {
-    let filesInfo = FilesDataReader(information);
+    const filesInfo = Array.isArray(information)
+      ? information.filter(file => file && typeof file.info === "string")
+      : typeof information === "string" && information.trim()
+        ? FilesDataReader(information)
+        : [];
 
     let WorkDoc;
     let namespaceWorkId;
 
     if (!workId) {
       WorkDoc = await Work.create({
-        title: filesInfo[0]?.filename || "Workspace Project",
-        messages: [
-          {
-            role: "user",
-            content: "Workspace Project Structure",
-            ProjectStructure: filesInfo,
-          },
-          {
-            role: "assistant",
-            content: "Workspace initialized successfully.",
-          },
-        ],
+        userId,
+        title: filesInfo[0]?.filename || message.trim().slice(0, 60),
       });
 
       namespaceWorkId = WorkDoc._id.toString();
     } else {
-      WorkDoc = await Work.findById(workId);
-
-
+      WorkDoc = await Work.findOne({ _id: workId, userId });
       if (!WorkDoc) {
         return res.status(404).json({
-          message: "InValid Id"
+          success: false,
+          message: "Conversation not found"
         });
       }
 
-      // assign namespaceWorkId when workId exists
       namespaceWorkId = workId.toString();
     }
 
@@ -151,10 +149,10 @@ const uploadFiles = async (req, res) => {
 
 
     // vector question
-    const VectorQuestion = await ContentEmbedding(message);
-
-    // pinecone top 5 related info
-    const PineconeTopKData = await SearchFilesData(namespaceWorkId, VectorQuestion);
+    const VectorQuestion = await ContentEmbedding(message.trim());
+    const PineconeTopKData = (workId || filesInfo.length > 0)
+      ? await SearchFilesData(namespaceWorkId, VectorQuestion)
+      : { matches: [] };
 
     //  Extract actual text
     const contextText = Array.isArray(PineconeTopKData?.matches)
@@ -179,7 +177,7 @@ ${contextText}
 Conversation History:
 ${recentHistory}
 
-User Question: ${message}
+User Question: ${message.trim()}
 
 Provide a helpful, precise answer based strictly on the provided context.
     `;
@@ -194,20 +192,22 @@ Provide a helpful, precise answer based strictly on the provided context.
       namespaceWorkId,
       {
         $push: {
-          messages: [
-            {
-              role: "user",
-              content: message,
-              ProjectStructure: JSON.stringify(filesInfo),
-            },
-            {
-              role: "assistant",
-              content: response,
-            },
-          ],
+          messages: {
+            $each: [
+              {
+                role: "user",
+                content: message.trim(),
+                ProjectStructure: JSON.stringify(filesInfo),
+              },
+              {
+                role: "assistant",
+                content: response,
+              },
+            ],
+          },
         },
       },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     return res.json({
@@ -240,7 +240,7 @@ const receiveFiles = async (req, res) => {
       });
     }
 
-    const WorksChat = await Work.findById(workId);
+    const WorksChat = await Work.findOne({ _id: workId, userId });
 
     if (!WorksChat) {
       return res.status(404).json({

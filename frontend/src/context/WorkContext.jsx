@@ -1,13 +1,12 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useCallback, useContext, useState } from 'react'
 import { loadAllWorkConversations, loadWorkConversationById, sendWorkConversation } from '../services/Works';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 
 export const workContext = createContext(null);
 
 export const WorkProvider = ({ children }) => {
 
-    const navigate = useNavigate();
     const { workId } = useParams();
 
     const [error, setError] = useState(null)
@@ -17,7 +16,7 @@ export const WorkProvider = ({ children }) => {
 
 
 
-    const handleError = (err) => {
+    const handleError = useCallback((err) => {
         if (err.response) {
             setError(err.response.data.message || "Server error");
         } else if (err.request) {
@@ -25,52 +24,54 @@ export const WorkProvider = ({ children }) => {
         } else {
             setError(err.message || "Something went wrong");
         }
-    };
+    }, []);
 
-
-    const sendWorkConversationData = async () => {
-
-        if (!message.trim()) return;
+    const sendWorkConversationData = useCallback(async (information, message, conversationId = workId) => {
+        if (typeof message !== "string" || !message.trim()) return null;
 
         try {
+            setError(null);
             setLoad(true);
-            const { data } = await sendWorkConversation(information, message, workId);
-            setCurWork(data)
-
-
-
-
+            const response = await sendWorkConversation(information, message, conversationId);
+            return response;
         } catch (err) {
-            handleError(err)
+            handleError(err);
+            throw err;
         } finally {
-            setLoad(false)
+            setLoad(false);
         }
+    }, [handleError, workId]);
 
-    }
-
-    const WorkConversationIdData = async (workId) => {
-
+    const WorkConversationIdData = useCallback(async (id = workId) => {
         try {
+            setError(null);
             setLoad(true);
-            const response = await loadWorkConversationById(workId);
-            setCurWork(response)
+            const response = await loadWorkConversationById(id);
+            const conversation = response.message;
+            setCurWork(conversation);
+            return conversation;
         } catch (err) {
-            handleError(err)
+            handleError(err);
+            throw err;
+        } finally {
+            setLoad(false);
         }
+    }, [handleError, workId]);
 
-    }
-
-    const LoadWorkAllConversationData = async () => {
-
+    const LoadWorkAllConversationData = useCallback(async () => {
         try {
+            setError(null);
             setLoad(true);
             const response = await loadAllWorkConversations();
-            setWorks(response)
+            setWorks(response.allWorksChat || []);
+            return response.allWorksChat || [];
         } catch (err) {
-            handleError(err)
+            handleError(err);
+            throw err;
+        } finally {
+            setLoad(false);
         }
-
-    }
+    }, [handleError]);
 
 
 

@@ -4,14 +4,23 @@ import { IoMic } from "react-icons/io5";
 import { RiSendPlaneFill } from "react-icons/ri";
 import { useInput } from "../context/inputContext";
 
-const Input = () => {
+const Input = ({ onSendMessage, isLoading = false }) => {
 
-  const { text, setText, files, setFiles, handleSendMessage } = useInput();
+  const { text, setText, files, setFiles } = useInput();
+
+  const submitMessage = () => {
+    const message = text.trim();
+    if (!message || isLoading) return;
+
+    setText("");
+    onSendMessage(message, files);
+    setFiles([]);
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      submitMessage();
     }
   };
 
@@ -30,6 +39,7 @@ const Input = () => {
         <input
           type="file"
           multiple
+          accept=".txt,.md,.markdown,.json,.js,.jsx,.ts,.tsx,.py,.java,.c,.h,.cpp,.css,.html,.xml,.yaml,.yml,.csv,.sql,.log"
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
@@ -45,6 +55,7 @@ const Input = () => {
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
+        disabled={isLoading}
       />
 
 
@@ -56,10 +67,11 @@ const Input = () => {
         <button
           type="button"
           className="submit-btn"
-          onClick={handleSendMessage}
+          onClick={submitMessage}
+          disabled={isLoading || !text.trim()}
           title="Send prompt"
         >
-          <RiSendPlaneFill />
+          {isLoading ? "…" : <RiSendPlaneFill />}
         </button>
       </div>
     </div>

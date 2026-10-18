@@ -1,26 +1,34 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Input from "./Input";
 import { FiMenu, FiMoreVertical } from "react-icons/fi";
 import "../style/Workspace.css";
 import { useConversation } from "../context/WorkContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Workspace = () => {
 
   const {
+    WorkConversationIdData,
+    LoadWorkAllConversationData,
+    sendWorkConversationData,
+    setCurWork,
     Works,
-    error
+    curWork,
+    load,
+    error,
   } = useConversation()
 
   const navigate = useNavigate();
+  const { workId } = useParams();
   const { user, logout, error: authError } = useAuth();
 
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 768);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [currentWorkId, setCurrentWorkId] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState("");
 
   // const [works, setWorks] = useState([
   //   { _id: "1", title: "Project Docs Analysis" },
@@ -29,22 +37,85 @@ const Workspace = () => {
 
   const [messages, setMessages] = useState([]);
 
-  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+  useEffect(() => {
+    if (!workId) {
+      setCurWork(null);
+      setMessages([]);
+      return;
+    }
+
+    setCurWork(null);
+    WorkConversationIdData(workId).catch(() => {});
+  }, [workId, WorkConversationIdData, setCurWork]);
+
+  useEffect(() => {
+    LoadWorkAllConversationData().catch(() => {});
+  }, [LoadWorkAllConversationData]);
+
+  useEffect(() => {
+    setMessages(Array.isArray(curWork?.messages) ? curWork.messages : []);
+  }, [curWork]);
+
+  const toggleSidebar = () => setSidebarOpen((previous) => !previous);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   const handleNewWork = () => {
-    setCurrentWorkId(null);
     setMessages([]);
     setSidebarOpen(false);
+    navigate("/work");
   };
 
   const handleSelectWork = (id) => {
-    setCurrentWorkId(id);
     setSidebarOpen(false);
+    navigate(`/work/${id}`);
   };
 
-  const handleSendMessage = (text) => {
-    setMessages((prev) => [...prev, { role: "user", content: text }]);
+  const handleSendMessage = async (text, files = []) => {
+    const activeWorkId = workId;
+
+    setSendError("");
+    setMessages((previous) => [
+      ...previous,
+      { _id: `user-${Date.now()}`, role: "user", content: text },
+    ]);
+    setIsSending(true);
+
+    try {
+      const information = await Promise.all(files.map(async (file) => {
+        if (!/\.(txt|md|markdown|json|js|jsx|ts|tsx|py|java|c|h|cpp|css|html|xml|yaml|yml|csv|sql|log)$/i.test(file.name)) {
+          throw new Error(`Unsupported file type: ${file.name}. Attach a text or source-code file.`);
+        }
+
+        return {
+          filename: file.name,
+          filetype: file.name.slice(file.name.lastIndexOf(".")),
+          FileLocation: file.name,
+          info: await file.text(),
+        };
+      }));
+
+      const result = await sendWorkConversationData(information, text, activeWorkId);
+      setMessages((previous) => [
+        ...previous,
+        {
+          _id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: result.response,
+        },
+      ]);
+      if (!activeWorkId && result?.workId) {
+        LoadWorkAllConversationData().catch(() => {});
+        navigate(`/work/${result.workId}`, { replace: true });
+      }
+    } catch (requestError) {
+      setSendError(
+        requestError.response?.data?.message ||
+          requestError.message ||
+          "Could not get a response. Please try again."
+      );
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -71,7 +142,7 @@ const Workspace = () => {
         works={Works}
         onSelectWork={handleSelectWork}
         onNewWork={handleNewWork}
-        currentWorkId={currentWorkId}
+        currentWorkId={workId || null}
         user={user}
         onLogout={handleLogout}
       />
@@ -80,7 +151,12 @@ const Workspace = () => {
       <div className="workspace-main">
         {/* Header bar */}
         <div className="workspace-header">
-          <button className="mobile-menu-trigger" onClick={toggleSidebar}>
+          <button
+            className="sidebar-toggle-btn"
+            onClick={toggleSidebar}
+            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+          >
             <FiMenu />
           </button>
 
@@ -109,11 +185,15 @@ const Workspace = () => {
         {/* Workspace Body / Chat Area */}
         <div className="workspace-body">
 
-          {(error || authError) && (
-            <p className="workspace-error" role="alert">{error || authError}</p>
+          {(error || authError || sendError) && (
+            <p className="workspace-error" role="alert">{error || authError || sendError}</p>
           )}
           
-          {messages.length === 0 ? (
+          {workId && load && messages.length === 0 ? (
+            <div className="empty-workspace-state" role="status">
+              <p>Loading conversation...</p>
+            </div>
+          ) : messages.length === 0 ? (
             <div className="empty-workspace-state">
               <p>Explain about your docs with other tasks.</p>
             </div>
@@ -124,12 +204,17 @@ const Workspace = () => {
                   {m.content}
                 </div>
               ))}
+              {isSending && (
+                <div className="chat-message assistant typing-indicator" role="status">
+                  Thinking…
+                </div>
+              )}
             </div>
           )}
 
           {/* Bottom Docked Input */}
           <div className="input-dock">
-            <Input onSendMessage={handleSendMessage} />
+            <Input onSendMessage={handleSendMessage} isLoading={isSending} />
           </div>
         </div>
       </div>
