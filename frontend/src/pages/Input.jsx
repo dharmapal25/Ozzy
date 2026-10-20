@@ -87,11 +87,11 @@ const Input = ({ onSendMessage, isLoading = false }) => {
           />
         </label>
 
-        <input
-          type="text"
+        <textarea
           className="prompt-input"
-          placeholder="Ask something uploaded docs related..."
+          placeholder="Ask something uploaded"
           value={text}
+          rows={2}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={isLoading}

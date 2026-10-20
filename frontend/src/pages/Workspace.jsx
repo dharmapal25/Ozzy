@@ -184,7 +184,7 @@ const Workspace = () => {
         </div>
 
         {/* Workspace Body / Chat Area */}
-        <div className="workspace-body">
+        <div className={`workspace-body${messages.length === 0 ? " workspace-body-empty" : ""}`}>
 
           {(error || authError || sendError) && (
             <p className="workspace-error" role="alert">{error || authError || sendError}</p>
@@ -205,7 +205,7 @@ const Workspace = () => {
                   <div className="chat-message-content">{m.content}</div>
                   {m.role === "assistant" && Array.isArray(m.sources) && m.sources.length > 0 && (
                     <div className="chat-message-sources">
-                      <span>Related files:</span>
+                      <span>Sources:</span>
                       {m.sources.map((source) => (
                         <span className="chat-message-source" key={source}>{source}</span>
                       ))}
@@ -222,7 +222,7 @@ const Workspace = () => {
           )}
 
           {/* Bottom Docked Input */}
-          <div className="input-dock">
+          <div className={`input-dock${messages.length === 0 ? " input-dock-centered" : ""}`}>
             <Input onSendMessage={handleSendMessage} isLoading={isSending} />
           </div>
         </div>
