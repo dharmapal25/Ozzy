@@ -2,10 +2,10 @@ import jwt from "jsonwebtoken";
 import env from "../config/env.js";
 
 
-// Verify the JWT without a database query
 const verifyToken = (req, res, next) => {
   try {
-    // Get the token from the cookie
+
+
     const token = req.cookies?.token;
 
     if (!token) {
@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
       });
     }
 
-    // Verify the token and read its payload
+
     const payload = jwt.verify(
       token,
       env.JWT_SECRET

@@ -2,11 +2,15 @@ import API from "./api";
 
 
 // api/work/upload-files
-export const sendWorkConversation = async (information, message, workId) => {
+export const sendWorkConversation = async (files, message, workId) => {
+    const formData = new FormData();
+    formData.append("message", message);
+    if (workId) formData.append("workId", workId);
 
-    const { data } = await API.post("/work/upload-files", {
-        information, message, workId
-    });
+    formData.append("paths", JSON.stringify(files.map((file) => file.relativePath || file.webkitRelativePath || file.name)));
+    files.forEach((file) => formData.append("files", file, file.name));
+
+    const { data } = await API.post("/work/upload-files", formData);
 
     return data;
 }
@@ -25,7 +29,5 @@ export const loadAllWorkConversations = async () => {
     const { data } = await API.get("/work/receive-all-files");
     return data;
 }
-
-
 
 

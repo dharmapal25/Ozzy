@@ -1,18 +1,36 @@
-import React from "react";
-import { FiPlus, FiX } from "react-icons/fi";
+import { useRef, useState } from "react";
+import { FiArrowUp, FiPlus, FiX } from "react-icons/fi";
 import { IoMic } from "react-icons/io5";
-import { RiSendPlaneFill } from "react-icons/ri";
 import { useInput } from "../context/inputContext";
+import { LoadingContent } from "../components/LoadingComponent";
 
 const Input = ({ onSendMessage, isLoading = false }) => {
 
   const { text, setText, files, setFiles } = useInput();
+  const [isUploadMenuOpen, setIsUploadMenuOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const folderInputRef = useRef(null);
+  const messageInputRef = useRef(null);
+  const fileTypes = ".txt,.md,.markdown,.json,.js,.jsx,.ts,.tsx,.py,.java,.c,.h,.cpp,.css,.html,.xml,.yaml,.yml,.csv,.sql,.log,.zip,.pdf,.doc,.docx,.xls,.xlsx,.pptx,.png,.jpg,.jpeg,.webp,.svg";
+
+  const getFilePath = (file) => file.relativePath || file.webkitRelativePath || file.name;
+
+  const addFiles = (selectedFiles) => {
+    setFiles((currentFiles) => {
+      const knownNames = new Set(currentFiles.map((file) => `${getFilePath(file)}:${file.size}:${file.lastModified}`));
+      return [
+        ...currentFiles,
+        ...selectedFiles.filter((file) => !knownNames.has(`${getFilePath(file)}:${file.size}:${file.lastModified}`)),
+      ];
+    });
+  };
 
   const submitMessage = () => {
     const message = text.trim();
     if (!message || isLoading) return;
 
     setText("");
+    if (messageInputRef.current) messageInputRef.current.style.height = "";
     onSendMessage(message, files);
     setFiles([]);
   };
@@ -26,14 +44,7 @@ const Input = ({ onSendMessage, isLoading = false }) => {
 
   const handleFileChange = (e) => {
     if (e.target.files) {
-      setFiles((currentFiles) => {
-        const selectedFiles = Array.from(e.target.files);
-        const knownNames = new Set(currentFiles.map((file) => `${file.name}:${file.size}:${file.lastModified}`));
-        return [
-          ...currentFiles,
-          ...selectedFiles.filter((file) => !knownNames.has(`${file.name}:${file.size}:${file.lastModified}`)),
-        ];
-      });
+      addFiles(Array.from(e.target.files));
       e.target.value = "";
     }
   };
@@ -44,72 +55,116 @@ const Input = ({ onSendMessage, isLoading = false }) => {
 
   return (
     <div className="input-dock-content">
-      {
-        files.length > 0 && (
-          <div className="selected-files" aria-label="Selected files">
-
-
-            {
-
-              files.map((file) => (
-                <span className="selected-file" key={`${file.name}:${file.size}:${file.lastModified}`}>
-                  <span className="selected-file-name" title={file.name}>{file.name}</span>
-
-                  <button
-                    type="button"
-                    className="remove-file-btn"
-                    onClick={() => removeFile(file)}
-                    aria-label={`Remove ${file.name}`}
-                    title={`Remove ${file.name}`}
-                  >
-                    <FiX />
-                  </button>
-
-                </span>
-              ))
-
-            }
-
-
-          </div>
-        )}
-
       <div className="work-input-container">
-        <label className="input-action-btn file-label" title="Upload files">
-          <FiPlus />
-          <input
-            type="file"
-            multiple
-            accept=".txt,.md,.markdown,.json,.js,.jsx,.ts,.tsx,.py,.java,.c,.h,.cpp,.css,.html,.xml,.yaml,.yml,.csv,.sql,.log"
-            style={{ display: "none" }}
-            onChange={handleFileChange}
-            disabled={isLoading}
-          />
-        </label>
-
         <textarea
+          ref={messageInputRef}
           className="prompt-input"
-          placeholder="Ask something uploaded"
+          placeholder="Send a message..."
           value={text}
-          rows={2}
-          onChange={(e) => setText(e.target.value)}
+          rows={1}
+          onChange={(e) => {
+            setText(e.target.value);
+            e.currentTarget.style.height = "auto";
+            e.currentTarget.style.height = `${Math.min(e.currentTarget.scrollHeight, 160)}px`;
+          }}
           onKeyDown={handleKeyDown}
           disabled={isLoading}
         />
 
-        <div className="input-actions-right">
-          <button type="button" className="icon-btn-secondary" title="Mic" disabled>
-            <IoMic />
-          </button>
-          <button
-            type="button"
-            className="submit-btn"
-            onClick={submitMessage}
-            disabled={isLoading || !text.trim()}
-            title="Send prompt"
-          >
-            {isLoading ? "…" : <RiSendPlaneFill />}
-          </button>
+        <div className="input-toolbar">
+          <div className="input-toolbar-left">
+            <div className="upload-picker">
+              <button
+                type="button"
+                className="file-label"
+                title="Add files, ZIP, or a folder"
+                aria-label="Add files, ZIP, or a folder"
+                aria-haspopup="menu"
+                aria-expanded={isUploadMenuOpen}
+                onClick={() => setIsUploadMenuOpen((open) => !open)}
+                disabled={isLoading}
+              >
+                <FiPlus size={"15.5px"} />
+              </button>
+              {isUploadMenuOpen && (
+                <div className="upload-picker-menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsUploadMenuOpen(false);
+                      fileInputRef.current?.click();
+                    }}
+                  >
+                    Choose files or ZIP
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsUploadMenuOpen(false);
+                      folderInputRef.current?.click();
+                    }}
+                  >
+                    Choose a folder
+                  </button>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept={fileTypes}
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+                disabled={isLoading}
+              />
+              <input
+                ref={folderInputRef}
+                type="file"
+                multiple
+                webkitdirectory=""
+                directory=""
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+                disabled={isLoading}
+              />
+            </div>
+            {files.length > 0 && (
+              <div className="selected-files" aria-label="Selected files">
+                {files.map((file) => (
+                  <span className="selected-file" key={`${getFilePath(file)}:${file.size}:${file.lastModified}`}>
+                    <span className="selected-file-name" title={getFilePath(file)}>{getFilePath(file)}</span>
+                    <button
+                      type="button"
+                      className="remove-file-btn"
+                      onClick={() => removeFile(file)}
+                      aria-label={`Remove ${file.name}`}
+                      title={`Remove ${file.name}`}
+                    >
+                      <FiX />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="input-actions-right">
+            <button type="button" className="icon-btn-secondary" title="Mic" disabled>
+              <IoMic />
+            </button>
+            <button
+              type="button"
+              className="submit-btn"
+              onClick={submitMessage}
+              disabled={isLoading || !text.trim()}
+              title="Send message"
+              aria-label="Send message"
+            >
+              {isLoading ? <LoadingContent /> : <FiArrowUp />}
+            </button>
+          </div>
         </div>
       </div>
     </div>

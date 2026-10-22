@@ -1,23 +1,10 @@
-import React, { createContext, useState, useContext } from 'react';
+import { createContext, useContext, useState } from 'react';
 
-export const inputContext = createContext();
+const inputContext = createContext(null);
 
 export const InputProvider = ({ children }) => {
   const [text, setText] = useState("");
   const [files, setFiles] = useState([]);
-
-
-  const handleSendMessage = () => {
-    if (!text.trim() && (!files || files.length === 0)) return;
-    
-    console.log("Sending text via context:", text);
-    console.log("Attached files via context:", files);
-
-    // API call 
-    
-    setText("");
-    setFiles([]);
-  };
 
   return (
     <inputContext.Provider
@@ -26,14 +13,19 @@ export const InputProvider = ({ children }) => {
         setText,
         files,
         setFiles,
-        handleSendMessage,
       }}
     >
       {children}
     </inputContext.Provider>
   );
+}
+
+// Keep the hook beside its provider so the context remains a single file.
+// eslint-disable-next-line react-refresh/only-export-components
+export const useInput = () => {
+  const context = useContext(inputContext);
+  if (!context) {
+    throw new Error("useInput must be used within an InputProvider");
+  }
+  return context;
 };
-
-
-// Custom Hook 
-export const useInput = () => useContext(inputContext);

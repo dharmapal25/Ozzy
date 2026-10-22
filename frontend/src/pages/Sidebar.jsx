@@ -1,4 +1,3 @@
-import React from "react";
 import { RiChatNewLine } from "react-icons/ri";
 import { FiLogOut, FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
@@ -10,11 +9,11 @@ const Sidebar = ({ isOpen, onClose, works = [], onSelectWork, onNewWork, current
 
       <div className="sidebar-header">
 
-        <button className="icon-btn add-btn" onClick={onNewWork} title="New Work">
+        <button className="icon-btn" onClick={onNewWork} title="New Work">
           <RiChatNewLine />
         </button>
 
-        <button className="icon-btn close-btn" onClick={onClose} title="Close Sidebar">
+        <button className="icon-btn" onClick={onClose} title="Close Sidebar">
           {isOpen ? <FiX /> : <FiMenu />}
         </button>
 

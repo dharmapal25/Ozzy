@@ -1,11 +1,43 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Input from "./Input";
+import MermaidDiagram from "../components/MermaidDiagram";
 import { FiMenu, FiMoreVertical } from "react-icons/fi";
 import "../style/Workspace.css";
 import { useConversation } from "../context/WorkContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { LoadingContent } from "../components/LoadingComponent";
+
+const MarkdownPre = ({ node, children, ...props }) => {
+  const code = node?.children?.[0];
+  const className = code?.properties?.className;
+  const language = Array.isArray(className)
+    ? className.find((name) => name.startsWith("language-"))?.slice(9).toLowerCase()
+    : "";
+
+  if (language === "mermaid") {
+    const chart = code.children?.map((child) => child.value || "").join("") || "";
+    return <MermaidDiagram chart={chart.replace(/\n$/, "")} />;
+  }
+
+  return <pre {...props}>{children}</pre>;
+};
+
+const getProjectFiles = (message) => {
+  if (Array.isArray(message.projectFiles)) return message.projectFiles;
+  if (typeof message.ProjectStructure !== "string" || !message.ProjectStructure) return [];
+
+  try {
+    const projectFiles = JSON.parse(message.ProjectStructure);
+    return Array.isArray(projectFiles) ? projectFiles : [];
+  } catch (parseError) {
+    console.error("Could not read uploaded file details from chat history:", parseError);
+    return [];
+  }
+};
 
 const Workspace = () => {
 
@@ -13,10 +45,7 @@ const Workspace = () => {
     WorkConversationIdData,
     LoadWorkAllConversationData,
     sendWorkConversationData,
-    setCurWork,
     Works,
-    curWork,
-    load,
     error,
   } = useConversation()
 
@@ -35,32 +64,30 @@ const Workspace = () => {
   //   { _id: "2", title: "API Authentication Flow" }
   // ]);
 
-  const [messages, setMessages] = useState([]);
+  const [chatState, setChatState] = useState({ workId: null, messages: [] });
+  const messages = chatState.workId === workId ? chatState.messages : [];
 
   useEffect(() => {
-    if (!workId) {
-      setCurWork(null);
-      setMessages([]);
-      return;
-    }
+    if (!workId) return;
 
-    setCurWork(null);
-    WorkConversationIdData(workId).catch(() => {});
-  }, [workId, WorkConversationIdData, setCurWork]);
+    WorkConversationIdData(workId)
+      .then((conversation) => {
+        setChatState({
+          workId,
+          messages: Array.isArray(conversation?.messages) ? conversation.messages : [],
+        });
+      })
+      .catch(() => { });
+  }, [workId, WorkConversationIdData]);
 
   useEffect(() => {
-    LoadWorkAllConversationData().catch(() => {});
+    LoadWorkAllConversationData().catch(() => { });
   }, [LoadWorkAllConversationData]);
-
-  useEffect(() => {
-    setMessages(Array.isArray(curWork?.messages) ? curWork.messages : []);
-  }, [curWork]);
 
   const toggleSidebar = () => setSidebarOpen((previous) => !previous);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   const handleNewWork = () => {
-    setMessages([]);
     setSidebarOpen(false);
     navigate("/work");
   };
@@ -72,47 +99,45 @@ const Workspace = () => {
 
   const handleSendMessage = async (text, files = []) => {
     const activeWorkId = workId;
+    const userMessageId = `user-${Date.now()}`;
 
     setSendError("");
-    setMessages((previous) => [
-      ...previous,
-      { _id: `user-${Date.now()}`, role: "user", content: text },
-    ]);
+    setChatState((previous) => ({
+      workId: activeWorkId,
+      messages: [
+        ...(previous.workId === activeWorkId ? previous.messages : []),
+        { _id: userMessageId, role: "user", content: text, projectFiles: [] },
+      ],
+    }));
     setIsSending(true);
 
     try {
-      const information = await Promise.all(files.map(async (file) => {
-        if (!/\.(txt|md|markdown|json|js|jsx|ts|tsx|py|java|c|h|cpp|css|html|xml|yaml|yml|csv|sql|log)$/i.test(file.name)) {
-          throw new Error(`Unsupported file type: ${file.name}. Attach a text or source-code file.`);
-        }
-
-        return {
-          filename: file.name,
-          filetype: file.name.slice(file.name.lastIndexOf(".")),
-          FileLocation: file.name,
-          info: await file.text(),
-        };
+      const result = await sendWorkConversationData(files, text, activeWorkId);
+      setChatState((previous) => ({
+        workId: activeWorkId,
+        messages: [
+          ...(previous.workId === activeWorkId ? previous.messages : []).map((message) =>
+            message._id === userMessageId
+              ? { ...message, projectFiles: result.data || [] }
+              : message
+          ),
+          {
+            _id: `assistant-${Date.now()}`,
+            role: "assistant",
+            content: result.response,
+            sources: result.sources || [],
+          },
+        ],
       }));
-
-      const result = await sendWorkConversationData(information, text, activeWorkId);
-      setMessages((previous) => [
-        ...previous,
-        {
-          _id: `assistant-${Date.now()}`,
-          role: "assistant",
-          content: result.response,
-          sources: result.sources || [],
-        },
-      ]);
       if (!activeWorkId && result?.workId) {
-        LoadWorkAllConversationData().catch(() => {});
+        LoadWorkAllConversationData().catch(() => { });
         navigate(`/work/${result.workId}`, { replace: true });
       }
     } catch (requestError) {
       setSendError(
         requestError.response?.data?.message ||
-          requestError.message ||
-          "Could not get a response. Please try again."
+        requestError.message ||
+        "Could not get a response. Please try again."
       );
     } finally {
       setIsSending(false);
@@ -184,38 +209,59 @@ const Workspace = () => {
         </div>
 
         {/* Workspace Body / Chat Area */}
-        <div className={`workspace-body${messages.length === 0 ? " workspace-body-empty" : ""}`}>
+        <div className="workspace-body">
 
           {(error || authError || sendError) && (
             <p className="workspace-error" role="alert">{error || authError || sendError}</p>
           )}
-          
-          {workId && load && messages.length === 0 ? (
-            <div className="empty-workspace-state" role="status">
-              <p>Loading conversation...</p>
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="empty-workspace-state">
-              <p>Explain about your docs with other tasks.</p>
-            </div>
-          ) : (
+
+          {messages.length > 0 && (
             <div className="chat-messages-container">
-              {messages.map((m, idx) => (
-                <div key={idx} className={`chat-message ${m.role}`}>
-                  <div className="chat-message-content">{m.content}</div>
-                  {m.role === "assistant" && Array.isArray(m.sources) && m.sources.length > 0 && (
-                    <div className="chat-message-sources">
-                      <span>Sources:</span>
-                      {m.sources.map((source) => (
-                        <span className="chat-message-source" key={source}>{source}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+              {messages.map((m, idx) => {
+                const projectFiles = m.role === "user" ? getProjectFiles(m) : [];
+
+                return (
+                  <div key={idx} className={`chat-message ${m.role}`}>
+                    {m.role === "user" ? (
+                      <>
+                        <div className="chat-message-content">{m.content}</div>
+                        {projectFiles.length > 0 && (
+                          <details className="chat-message-files">
+                            <summary>Files ({projectFiles.length})</summary>
+                            <ul>
+                              {projectFiles.map((file, fileIndex) => (
+                                <li key={`${file.FileLocation || file.filename}-${fileIndex}`}>
+                                  {file.FileLocation || file.filename}
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
+                      </>
+                    ) : (
+                      <div className="chat-message-content chat-markdown">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{ pre: MarkdownPre }}
+                        >
+                          {String(m.content ?? "")}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                    {m.role === "assistant" && Array.isArray(m.sources) && m.sources.length > 0 && (
+                      <div className="chat-message-sources">
+                        <span>Sources:</span>
+                        {m.sources.map((source) => (
+                          <span className="chat-message-source" key={source}>{source}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               {isSending && (
                 <div className="chat-message assistant typing-indicator" role="status">
-                  Thinking…
+                 <LoadingContent/>
                 </div>
               )}
             </div>

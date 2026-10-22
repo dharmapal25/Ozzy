@@ -8,47 +8,37 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const refreshUser = useCallback(async () => {
-    setLoading(true);
-
-
-    try {
-      const { data } = await API.get("/auth/me");
-      setUser(data.user);
-      setError("");
-      return data.user;
-
-
-    } catch (requestError) {
-      if (requestError.response?.status === 401) {
-        setUser(null);
-        setError("");
-        return null;
-      }
-
-
-      setError(
-        requestError.response?.data?.message ||
-          requestError.message ||
-          "Unable to verify your login."
-      );
-
-      throw requestError;
-
-
-    } finally {
-      setLoading(false);
-    }
-
-    
-  }, []);
-
   useEffect(() => {
+    let isActive = true;
 
-    refreshUser().catch(() => {
-      // The error is stored in context and shown by the relevant screen.
-    });
-  }, [refreshUser]);
+    API.get("/auth/me")
+      .then(({ data }) => {
+        if (!isActive) return;
+        setUser(data.user);
+        setError("");
+      })
+      .catch((requestError) => {
+        if (!isActive) return;
+        if (requestError.response?.status === 401) {
+          setUser(null);
+          setError("");
+          return;
+        }
+
+        setError(
+          requestError.response?.data?.message ||
+            requestError.message ||
+            "Unable to verify your login."
+        );
+      })
+      .finally(() => {
+        if (isActive) setLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const logout = useCallback(async () => {
     setError("");
@@ -66,12 +56,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, error, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// Keep the hook beside its provider so the context remains a single file.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
