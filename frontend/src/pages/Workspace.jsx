@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { LoadingContent } from "../components/LoadingComponent";
+import Share from "../components/tools/Share";
 
 const MarkdownPre = ({ node, children, ...props }) => {
   const code = node?.children?.[0];
@@ -56,6 +57,7 @@ const Workspace = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 768);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
 
@@ -197,7 +199,7 @@ const Workspace = () => {
 
             {menuOpen && (
               <div className="dropdown-menu">
-                <button onClick={() => setMenuOpen(false)}>Share</button>
+                <button onClick={() => { setMenuOpen(false); setShareOpen(true); }}>Share</button>
                 <button onClick={() => setMenuOpen(false)}>Full screen</button>
                 <button onClick={() => setMenuOpen(false)}>Bookmark</button>
                 <button onClick={() => { handleNewWork(); setMenuOpen(false); }}>New Work</button>
@@ -273,6 +275,7 @@ const Workspace = () => {
           </div>
         </div>
       </div>
+      {shareOpen && <Share onClose={() => setShareOpen(false)} />}
     </div>
   );
 };
