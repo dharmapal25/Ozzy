@@ -4,6 +4,7 @@ import '../style/Login.css';
 import API from '../services/api';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ErrorHandlingComponent from '../components/ErrorHandlingComponent';
 
 const Login = () => {
 
@@ -33,10 +34,10 @@ const Login = () => {
 
     return (
         <div className="login-container">
+            <ErrorHandlingComponent key={message} message={message} />
             <div className="login-card">
                 <h2 className="login-title">Login</h2>
                 <p className="login-subtitle">Welcome back! Please sign in to continue.</p>
-                {message && <p className="login-error" role="alert">{message}</p>}
 
                 <button
                     className="google-btn"

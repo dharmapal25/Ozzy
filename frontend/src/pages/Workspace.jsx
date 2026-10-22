@@ -11,6 +11,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { LoadingContent } from "../components/LoadingComponent";
 import Share from "../components/tools/Share";
+import ErrorHandlingComponent from "../components/ErrorHandlingComponent";
 
 const MarkdownPre = ({ node, children, ...props }) => {
   const code = node?.children?.[0];
@@ -157,6 +158,10 @@ const Workspace = () => {
 
   return (
     <div className="workspace-wrapper">
+      <ErrorHandlingComponent
+        key={error || authError || sendError}
+        message={error || authError || sendError}
+      />
       {/* Backdrop for mobile when sidebar is open */}
 
       {
@@ -212,10 +217,6 @@ const Workspace = () => {
 
         {/* Workspace Body / Chat Area */}
         <div className="workspace-body">
-
-          {(error || authError || sendError) && (
-            <p className="workspace-error" role="alert">{error || authError || sendError}</p>
-          )}
 
           {messages.length > 0 && (
             <div className="chat-messages-container">
