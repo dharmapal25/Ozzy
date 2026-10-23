@@ -257,7 +257,7 @@ const Workspace = () => {
                             },
                           }}
                         >
-                          {String(m.content ?? "")}
+                          {String(m.content ?? "").replace("[[download-generated-files-zip]]", "")}
                         </ReactMarkdown>
                       </div>
                     )}

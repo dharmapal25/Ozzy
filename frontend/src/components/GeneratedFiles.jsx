@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { FiArchive, FiDownload, FiFileText } from "react-icons/fi";
 
 const generatedFilePattern = /```file:([^\s`]+)\s*\r?\n([\s\S]*?)```/g;
+const zipDownloadMarker = "[[download-generated-files-zip]]";
 
 const extractGeneratedFiles = (content) => {
   if (typeof content !== "string") return [];
@@ -76,6 +77,7 @@ const GeneratedFileCard = ({ file, onError }) => {
 const GeneratedFiles = ({ content, onError }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const files = extractGeneratedFiles(content);
+  const includeZipDownload = content?.includes(zipDownloadMarker);
 
   const downloadZip = async () => {
     setIsDownloading(true);
@@ -116,7 +118,7 @@ const GeneratedFiles = ({ content, onError }) => {
       {files.map((file, index) => (
         <GeneratedFileCard key={`${file.filename}-${index}`} file={file} onError={onError} />
       ))}
-      {files.length > 0 && (
+      {includeZipDownload && (
         <button
           type="button"
           className="generated-files-zip"
