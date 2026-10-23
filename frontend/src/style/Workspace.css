@@ -23,24 +23,29 @@ body {
 /* Outer layout */
 .workspace-wrapper {
   display: flex;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
+  min-width: 0;
   position: relative;
+  overflow: hidden;
   background-color: #0f1015;
 }
 
 .work-sidebar {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  bottom: 0;
-  width: 260px;
+  width: min(260px, 85vw);
+  height: 100vh;
+  height: 100dvh;
   background-color: #0e0e0f;
   border-right: 1px solid #232733;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
   box-shadow: 4px 0 16px rgba(0, 0, 0, 0.6);
@@ -49,6 +54,10 @@ body {
 
 .work-sidebar.open {
   transform: translateX(0);
+}
+
+.sidebar-backdrop {
+  display: none;
 }
 
 .sidebar-header {
@@ -156,21 +165,28 @@ body {
 
 .workspace-main {
   flex: 1;
-  height: 100%;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
   background-color: #080808cc;
+  overflow: hidden;
 }
 
 .workspace-header {
-  height: 56px;
+  flex: 0 0 56px;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
   border-bottom: 1px solid #1a1e27;
   position: relative;
+  background-color: #0f1015;
 }
 
 .workspace-title {
@@ -352,11 +368,11 @@ body {
 
 .workspace-body {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 24px;
-  overflow-y: auto;
+  padding: 24px 0 0;
+  overflow: hidden;
   position: relative;
 }
 
@@ -372,13 +388,16 @@ body {
 
 .chat-messages-container {
   flex: 1;
+  min-height: 0;
   width: 100%;
-  max-width: 768px;
-  align-self: center;
-  margin-bottom: 10%;
+  max-width: none;
+  align-self: stretch;
+  margin: 0;
+  padding: 0 max(0px, calc((100% - 768px) / 2)) 150px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
 }
 
 .chat-message {
@@ -655,9 +674,9 @@ hr {
   align-items: center;
   justify-content: center;
   width: min(768px, calc(100% - 48px));
-  position: fixed;
-  left: 48%;
-  bottom: 5%;
+  position: absolute;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 10;
 }
@@ -672,7 +691,7 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 95%;
+  width: 100%;
 }
 
 .selected-files {
@@ -902,17 +921,26 @@ hr {
 
 @media (max-width: 768px) {
   .sidebar-backdrop {
-    position: absolute;
+    display: block;
+    position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
     z-index: 90;
   }
 
   .workspace-body {
-    padding: 16px 12px;
+    padding: 16px 0 0;
+    background: transparent;
   }
 
   .input-dock {
     width: calc(100% - 24px);
+  }
+
+  .workspace-header {
+    padding: 0 12px;
+  }
+
+  .workspace-title {
+    font-size: 16px;
   }
 }

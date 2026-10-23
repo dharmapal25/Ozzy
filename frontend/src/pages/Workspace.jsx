@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Sidebar from "./Sidebar";
 import Input from "./Input";
 import MermaidDiagram from "../components/MermaidDiagram";
@@ -57,7 +57,12 @@ const Workspace = () => {
   const { user, logout, error: authError } = useAuth();
 
 
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 768);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    const savedSidebarState = localStorage.getItem("sidebarOpen");
+    if (savedSidebarState === "true") return true;
+    if (savedSidebarState === "false") return false;
+    return window.innerWidth > 768;
+  });
   const [menuOpen, setMenuOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -65,6 +70,7 @@ const Workspace = () => {
 
   const [chatState, setChatState] = useState({ workId: null, messages: [] });
   const messages = chatState.workId === workId ? chatState.messages : [];
+  const chatMessagesRef = useRef(null);
 
   useEffect(() => {
     if (!workId) return;
@@ -82,6 +88,15 @@ const Workspace = () => {
   useEffect(() => {
     LoadWorkAllConversationData().catch(() => { });
   }, [LoadWorkAllConversationData]);
+
+  useEffect(() => {
+    localStorage.setItem("sidebarOpen", String(sidebarOpen));
+  }, [sidebarOpen]);
+
+  useLayoutEffect(() => {
+    if (!isSending || !chatMessagesRef.current) return;
+    chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+  }, [isSending, messages.length]);
 
   const toggleSidebar = () => setSidebarOpen((previous) => !previous);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
@@ -209,7 +224,7 @@ const Workspace = () => {
         <div className="workspace-body">
 
           {messages.length > 0 && (
-            <div className="chat-messages-container">
+            <div className="chat-messages-container" ref={chatMessagesRef}>
               {messages.map((m, idx) => {
                 const projectFiles = m.role === "user" ? getProjectFiles(m) : [];
 
