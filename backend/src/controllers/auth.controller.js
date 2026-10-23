@@ -15,11 +15,12 @@ const createToken = (userId) => {
 // Set the cookie and redirect after Google login
 export const googleCallback = (req, res) => {
     const token = createToken(req.user._id);
+    const isProduction = env.NODE_ENV === "production";
 
     res.cookie("token", token, {
         httpOnly: true,
-        secure: env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         path: "/api",
         maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -56,10 +57,12 @@ export const getMe = async (req, res) => {
 
 // Logout the user
 export const logout = (req, res) => {
+    const isProduction = env.NODE_ENV === "production";
+
     res.clearCookie("token", {
         httpOnly: true,
-        secure: env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         path: "/api",
     });
 
