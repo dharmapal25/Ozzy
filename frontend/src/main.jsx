@@ -1,6 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import Login from './pages/Login.jsx'
 import Workspace from './pages/Workspace.jsx'
 import { InputProvider } from './context/inputContext.jsx'
@@ -12,7 +11,7 @@ import { RequireAuth, RequireGuest } from './components/AuthRoutes.jsx'
 const Routers = createBrowserRouter([
   {
     path: "/",
-    element: <App />
+    element: <Navigate to="/work" replace />
   },
   {
     path: "/login",
