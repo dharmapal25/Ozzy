@@ -186,7 +186,7 @@ body {
   padding: 0 20px;
   border-bottom: 1px solid #1a1e27;
   position: relative;
-  background-color: #0f1015;
+  /* background-color: #0f1015; */
 }
 
 .workspace-title {
@@ -422,8 +422,14 @@ body {
 
 .chat-message.user .chat-message-content {
   padding: 12px 16px;
+  margin-right: 1vw;
   border-radius: 20px 25px 25px 0;
   background-color: #88888833;
+}
+
+a {
+  color: #83d4ce;
+  text-decoration: none;
 }
 
 .chat-message-files {
@@ -871,6 +877,12 @@ hr {
   gap: 6px;
 }
 
+.speech-status {
+  max-width: 220px;
+  color: #adabab;
+  font-size: 11px;
+}
+
 .icon-btn,
 .icon-btn-secondary,
 .submit-btn {
@@ -909,6 +921,10 @@ hr {
   background-color: #555;
   color: #aaa;
   cursor: not-allowed;
+}
+
+.input-actions-right .icon-btn-secondary.listening {
+  background-color: #b8b8b855;
 }
 
 .submit-btn {

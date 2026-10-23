@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FiArrowUp, FiPlus, FiX } from "react-icons/fi";
-import { IoMic } from "react-icons/io5";
 import { useInput } from "../context/inputContext";
 import { LoadingContent } from "../components/LoadingComponent";
+import SpeechToText from "../components/SpeechToText";
 
 const Input = ({ onSendMessage, isLoading = false }) => {
 
@@ -12,6 +12,12 @@ const Input = ({ onSendMessage, isLoading = false }) => {
   const folderInputRef = useRef(null);
   const messageInputRef = useRef(null);
   const fileTypes = ".txt,.md,.markdown,.json,.js,.jsx,.ts,.tsx,.py,.java,.c,.h,.cpp,.css,.html,.xml,.yaml,.yml,.csv,.sql,.log,.zip,.pdf,.doc,.docx,.xls,.xlsx,.pptx,.png,.jpg,.jpeg,.webp,.svg";
+
+  useEffect(() => {
+    if (!messageInputRef.current) return;
+    messageInputRef.current.style.height = "auto";
+    messageInputRef.current.style.height = `${Math.min(messageInputRef.current.scrollHeight, 160)}px`;
+  }, [text]);
 
   const getFilePath = (file) => file.relativePath || file.webkitRelativePath || file.name;
 
@@ -151,9 +157,14 @@ const Input = ({ onSendMessage, isLoading = false }) => {
           </div>
 
           <div className="input-actions-right">
-            <button type="button" className="icon-btn-secondary" title="Mic" disabled>
-              <IoMic />
-            </button>
+            <SpeechToText
+              disabled={isLoading}
+              onTranscript={(transcript) => {
+                setText((currentText) =>
+                  `${currentText}${currentText && !currentText.endsWith(" ") ? " " : ""}${transcript}`
+                );
+              }}
+            />
             <button
               type="button"
               className="submit-btn"
