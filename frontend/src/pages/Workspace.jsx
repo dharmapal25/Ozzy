@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Input from "./Input";
 import MermaidDiagram from "../components/MermaidDiagram";
+import GeneratedFiles from "../components/GeneratedFiles";
 import { FiMenu, FiMoreVertical } from "react-icons/fi";
 import "../style/Workspace.css";
 import { useConversation } from "../context/WorkContext";
@@ -245,11 +246,23 @@ const Workspace = () => {
                       <div className="chat-message-content chat-markdown">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
-                          components={{ pre: MarkdownPre }}
+                          components={{
+                            pre: ({ node, children, ...props }) => {
+                              const classNames = node?.children?.[0]?.properties?.className;
+                              const language = Array.isArray(classNames)
+                                ? classNames.find((name) => name.startsWith("language-"))
+                                : "";
+                              if (language?.startsWith("language-file:")) return null;
+                              return <MarkdownPre node={node} {...props}>{children}</MarkdownPre>;
+                            },
+                          }}
                         >
                           {String(m.content ?? "")}
                         </ReactMarkdown>
                       </div>
+                    )}
+                    {m.role === "assistant" && (
+                      <GeneratedFiles content={m.content} onError={setSendError} />
                     )}
                     {m.role === "assistant" && Array.isArray(m.sources) && m.sources.length > 0 && (
                       <div className="chat-message-sources">
