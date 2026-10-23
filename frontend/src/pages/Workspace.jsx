@@ -63,11 +63,6 @@ const Workspace = () => {
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
 
-  // const [works, setWorks] = useState([
-  //   { _id: "1", title: "Project Docs Analysis" },
-  //   { _id: "2", title: "API Authentication Flow" }
-  // ]);
-
   const [chatState, setChatState] = useState({ workId: null, messages: [] });
   const messages = chatState.workId === workId ? chatState.messages : [];
 
@@ -163,13 +158,7 @@ const Workspace = () => {
         key={error || authError || sendError}
         message={error || authError || sendError}
       />
-      {/* Backdrop for mobile when sidebar is open */}
-
-      {
-        sidebarOpen && <div className="sidebar-backdrop" onClick={toggleSidebar}></div>
-      }
-
-      {/* Sidebar Component */}
+      {sidebarOpen && <div className="sidebar-backdrop" onClick={toggleSidebar}></div>}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={toggleSidebar}

@@ -7,7 +7,6 @@ const Home = () => {
       <LoadingComponent/>
         <Link to={'/login'}>Login</Link>
         <Link to={'/work'}>Work</Link>
-        <Link to={'/work/:workId'}>Work</Link>
     </div>
   )
 }

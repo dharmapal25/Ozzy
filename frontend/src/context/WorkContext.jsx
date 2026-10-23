@@ -9,10 +9,7 @@ export const WorkProvider = ({ children }) => {
     const { workId } = useParams();
 
     const [error, setError] = useState(null)
-    const [load, setLoad] = useState(false)
     const [Works, setWorks] = useState([]);
-
-
 
     const handleError = useCallback((err) => {
         if (err.response) {
@@ -29,44 +26,35 @@ export const WorkProvider = ({ children }) => {
 
         try {
             setError(null);
-            setLoad(true);
             const response = await sendWorkConversation(information, message, conversationId);
             return response;
         } catch (err) {
             handleError(err);
             throw err;
-        } finally {
-            setLoad(false);
         }
     }, [handleError, workId]);
 
     const WorkConversationIdData = useCallback(async (id = workId) => {
         try {
             setError(null);
-            setLoad(true);
             const response = await loadWorkConversationById(id);
             const conversation = response.message;
             return conversation;
         } catch (err) {
             handleError(err);
             throw err;
-        } finally {
-            setLoad(false);
         }
     }, [handleError, workId]);
 
     const LoadWorkAllConversationData = useCallback(async () => {
         try {
             setError(null);
-            setLoad(true);
             const response = await loadAllWorkConversations();
             setWorks(response.allWorksChat || []);
             return response.allWorksChat || [];
         } catch (err) {
             handleError(err);
             throw err;
-        } finally {
-            setLoad(false);
         }
     }, [handleError]);
 
@@ -79,7 +67,6 @@ export const WorkProvider = ({ children }) => {
                 WorkConversationIdData,
                 LoadWorkAllConversationData,
                 Works,
-                load,
                 error
             }} >
 

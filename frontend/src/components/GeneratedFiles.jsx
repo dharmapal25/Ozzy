@@ -21,19 +21,6 @@ const normalizeFilename = (filename) => filename
   .map((part) => part.replace(/[<>:"|?*]/g, "_"))
   .join("/");
 
-const getFileTitle = (filename) => {
-  const basename = filename.split(/[\\/]/).pop() || filename;
-  const extensionIndex = basename.lastIndexOf(".");
-  return extensionIndex > 0 ? basename.slice(0, extensionIndex) : basename;
-};
-
-const getFileType = (filename) => {
-  const extension = filename.split(".").pop();
-  return extension && extension !== filename
-    ? `Code · ${extension.toUpperCase()}`
-    : "Generated file";
-};
-
 const downloadBlob = (blob, filename) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -46,6 +33,9 @@ const downloadBlob = (blob, filename) => {
 };
 
 const GeneratedFileCard = ({ file, onError }) => {
+  const filename = file.filename.split(/[\\/]/).pop() || file.filename;
+  const extensionIndex = filename.lastIndexOf(".");
+
   const downloadFile = () => {
     try {
       const filename = normalizeFilename(file.filename);
@@ -63,8 +53,12 @@ const GeneratedFileCard = ({ file, onError }) => {
     <div className="generated-file-card">
       <span className="generated-file-icon" aria-hidden="true"><FiFileText /></span>
       <span className="generated-file-details">
-        <span className="generated-file-title" title={file.filename}>{getFileTitle(file.filename)}</span>
-        <span className="generated-file-type">{getFileType(file.filename)}</span>
+        <span className="generated-file-title" title={file.filename}>
+          {extensionIndex > 0 ? filename.slice(0, extensionIndex) : filename}
+        </span>
+        <span className="generated-file-type">
+          {extensionIndex > 0 ? `Code · ${filename.slice(extensionIndex + 1).toUpperCase()}` : "Generated file"}
+        </span>
       </span>
       <button type="button" className="generated-file-download" onClick={downloadFile}>
         <FiDownload aria-hidden="true" />

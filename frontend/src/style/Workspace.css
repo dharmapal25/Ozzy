@@ -29,7 +29,6 @@ body {
   background-color: #0f1015;
 }
 
-/* ================= SIDEBAR ================= */
 .work-sidebar {
   position: absolute;
   top: 0;
@@ -155,7 +154,6 @@ body {
   background-color: #242936;
 }
 
-/* ================= MAIN CONTENT ================= */
 .workspace-main {
   flex: 1;
   height: 100%;
@@ -202,7 +200,6 @@ body {
   background-color: #242936;
 }
 
-/* ================= 3-DOTS DROPDOWN ================= */
 .menu-wrapper {
   position: relative;
   margin-left: auto;
@@ -219,7 +216,6 @@ body {
 }
 
 .menu-trigger-btn:hover {
-  /* background-color: #70707060; */
   color: #fff;
 }
 
@@ -354,7 +350,6 @@ body {
   font-size: 13px;
 }
 
-/* ================= BODY & INPUT ================= */
 .workspace-body {
   flex: 1;
   display: flex;
@@ -380,7 +375,6 @@ body {
   width: 100%;
   max-width: 768px;
   align-self: center;
-  /* overflow-y: auto; */
   margin-bottom: 10%;
   display: flex;
   flex-direction: column;
@@ -444,10 +438,7 @@ body {
 
 .chat-message.assistant {
   align-self: flex-start;
-  /* background-color: #2424240e;
-  border: 1px solid #28282823; */
   color: #d9d9dae8;
-  /* width: 95%; */
   margin-bottom: 7%;
 }
 
@@ -591,7 +582,6 @@ hr {
 
 .chat-markdown :not(pre)>code {
   padding: 2px 5px;
-  /* border-radius: 4px; */
   background-color: #98989962;
 }
 
@@ -768,7 +758,6 @@ hr {
 
 .file-label {
   cursor: pointer;
-  /* color: #9ca3af; */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -780,7 +769,6 @@ hr {
 
 .file-label:hover {
   background-color: #e2e2e2ec;
-  /* color: #fff; */
 }
 
 .file-label:disabled {
@@ -912,7 +900,6 @@ hr {
   color: #f7fafd;
 }
 
-/* ================= MOBILE RESPONSIVE (ABSOLUTE SIDEBAR) ================= */
 @media (max-width: 768px) {
   .sidebar-backdrop {
     position: absolute;
