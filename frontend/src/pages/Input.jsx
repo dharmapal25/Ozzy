@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FiArrowUp, FiPlus, FiX } from "react-icons/fi";
 import { useInput } from "../context/inputContext";
-import { LoadingContent } from "../components/LoadingComponent";
+import { LoadingContent } from "../components/UI/LoadingComponent";
 import SpeechToText from "../components/SpeechToText";
 
 const Input = ({ onSendMessage, isLoading = false }) => {

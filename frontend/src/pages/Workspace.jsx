@@ -1,18 +1,21 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Sidebar from "./Sidebar";
 import Input from "./Input";
-import MermaidDiagram from "../components/MermaidDiagram";
+import MermaidDiagram from "../components/UI/MermaidDiagram";
 import GeneratedFiles from "../components/tools/GeneratedFiles";
-import { FiMenu, FiMoreVertical } from "react-icons/fi";
+import Editor from "../components/tools/Editor";
+import WorkspaceNotes from "../components/tools/WorkspaceNotes";
+import WorkspaceToolPanel from "../components/tools/WorkspaceToolPanel";
+import { FiCode, FiMenu, FiMoreVertical } from "react-icons/fi";
 import "../style/Workspace.css";
 import { useConversation } from "../context/WorkContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { LoadingContent } from "../components/LoadingComponent";
+import { LoadingContent } from "../components/UI/LoadingComponent";
 import Share from "../components/features/Share";
-import ErrorHandlingComponent from "../components/ErrorHandlingComponent";
+import ErrorHandlingComponent from "../components/UI/ErrorHandlingComponent";
 
 const MarkdownPre = ({ node, children, ...props }) => {
   const code = node?.children?.[0];
@@ -63,8 +66,9 @@ const Workspace = () => {
     if (savedSidebarState === "false") return false;
     return window.innerWidth > 768;
   });
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [activeTool, setActiveTool] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
 
@@ -99,7 +103,11 @@ const Workspace = () => {
   }, [isSending, messages.length]);
 
   const toggleSidebar = () => setSidebarOpen((previous) => !previous);
-  const toggleMenu = () => setMenuOpen((prev) => !prev);
+  const toggleMenu = (menu) => setOpenMenu((current) => current === menu ? null : menu);
+  const openTool = (tool) => {
+    setActiveTool(tool);
+    setOpenMenu(null);
+  };
 
   const handleNewWork = () => {
     setSidebarOpen(false);
@@ -200,23 +208,54 @@ const Workspace = () => {
 
           <h1 className="workspace-title">Work</h1>
 
-          {/* Top-Right 3-Dots Menu */}
-          <div className="menu-wrapper">
-            <button className="menu-trigger-btn" onClick={toggleMenu}>
-              <FiMoreVertical />
+          <div className="workspace-header-actions">
+            <button
+              type="button"
+              className="menu-trigger-btn"
+              onClick={() => toggleMenu("tools")}
+              title="Open tools"
+              aria-label="Open tools"
+              aria-haspopup="menu"
+              aria-expanded={openMenu === "tools"}
+            >
+              <FiCode />
             </button>
-
-
-            {menuOpen && (
-              <div className="dropdown-menu">
-                <button onClick={() => { setMenuOpen(false); setShareOpen(true); }}>Share</button>
-                <button onClick={() => setMenuOpen(false)}>Full screen</button>
-                <button onClick={() => setMenuOpen(false)}>Bookmark</button>
-                <button onClick={() => { handleNewWork(); setMenuOpen(false); }}>New Work</button>
-                <button onClick={() => setMenuOpen(false)}>Download chat</button>
-                <button className="delete-btn" onClick={() => setMenuOpen(false)}>Delete</button>
+            {openMenu === "tools" && (
+              <div className="dropdown-menu workspace-tools-menu" role="menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => openTool("notes")}
+                >
+                  Notes
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => openTool("editor")}
+                >
+                  Editor
+                </button>
               </div>
             )}
+            <div className="menu-wrapper">
+              <button
+                type="button"
+                className="menu-trigger-btn"
+                onClick={() => toggleMenu("workspace")}
+                aria-label="Open workspace menu"
+                aria-haspopup="menu"
+                aria-expanded={openMenu === "workspace"}
+              >
+                <FiMoreVertical />
+              </button>
+              {openMenu === "workspace" && (
+                <div className="dropdown-menu" role="menu">
+                  <button role="menuitem" onClick={() => { setOpenMenu(null); setShareOpen(true); }}>Share</button>
+                  <button role="menuitem" onClick={() => { handleNewWork(); setOpenMenu(null); }}>New Work</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -293,6 +332,16 @@ const Workspace = () => {
           </div>
         </div>
       </div>
+      {activeTool && (
+        <WorkspaceToolPanel
+          title={activeTool === "notes" ? "Notes" : "Editor"}
+          onClose={() => setActiveTool(null)}
+        >
+          {activeTool === "notes"
+            ? <WorkspaceNotes onError={setSendError} />
+            : <Editor />}
+        </WorkspaceToolPanel>
+      )}
       {shareOpen && <Share onClose={() => setShareOpen(false)} />}
     </div>
   );

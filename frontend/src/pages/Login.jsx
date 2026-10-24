@@ -4,7 +4,7 @@ import '../style/Login.css';
 import API from '../services/api';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import ErrorHandlingComponent from '../components/ErrorHandlingComponent';
+import ErrorHandlingComponent from '../components/UI/ErrorHandlingComponent';
 
 const Login = () => {
 

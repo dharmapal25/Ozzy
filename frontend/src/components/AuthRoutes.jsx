@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { PulseLoader } from "react-spinners";
-import { LoadingComponent } from "./LoadingComponent";
+import { LoadingComponent } from "./UI/LoadingComponent";
 
 
 export const RequireAuth = ({ children }) => {
