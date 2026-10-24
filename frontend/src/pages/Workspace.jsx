@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Sidebar from "./Sidebar";
 import Input from "./Input";
 import MermaidDiagram from "../components/MermaidDiagram";
-import GeneratedFiles from "../components/GeneratedFiles";
+import GeneratedFiles from "../components/tools/GeneratedFiles";
 import { FiMenu, FiMoreVertical } from "react-icons/fi";
 import "../style/Workspace.css";
 import { useConversation } from "../context/WorkContext";
@@ -11,7 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { LoadingContent } from "../components/LoadingComponent";
-import Share from "../components/tools/Share";
+import Share from "../components/features/Share";
 import ErrorHandlingComponent from "../components/ErrorHandlingComponent";
 
 const MarkdownPre = ({ node, children, ...props }) => {
@@ -222,74 +222,74 @@ const Workspace = () => {
 
         {/* Workspace Body / Chat Area */}
         <div className="workspace-body">
+          <div className="chat-panel">
+            {messages.length > 0 && (
+              <div className="chat-messages-container" ref={chatMessagesRef}>
+                {messages.map((m, idx) => {
+                  const projectFiles = m.role === "user" ? getProjectFiles(m) : [];
 
-          {messages.length > 0 && (
-            <div className="chat-messages-container" ref={chatMessagesRef}>
-              {messages.map((m, idx) => {
-                const projectFiles = m.role === "user" ? getProjectFiles(m) : [];
-
-                return (
-                  <div key={idx} className={`chat-message ${m.role}`}>
-                    {m.role === "user" ? (
-                      <>
-                        <div className="chat-message-content">{m.content}</div>
-                        {projectFiles.length > 0 && (
-                          <details className="chat-message-files">
-                            <summary>Files ({projectFiles.length})</summary>
-                            <ul>
-                              {projectFiles.map((file, fileIndex) => (
-                                <li key={`${file.FileLocation || file.filename}-${fileIndex}`}>
-                                  {file.FileLocation || file.filename}
-                                </li>
-                              ))}
-                            </ul>
-                          </details>
-                        )}
-                      </>
-                    ) : (
-                      <div className="chat-message-content chat-markdown">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            pre: ({ node, children, ...props }) => {
-                              const classNames = node?.children?.[0]?.properties?.className;
-                              const language = Array.isArray(classNames)
-                                ? classNames.find((name) => name.startsWith("language-"))
-                                : "";
-                              if (language?.startsWith("language-file:")) return null;
-                              return <MarkdownPre node={node} {...props}>{children}</MarkdownPre>;
-                            },
-                          }}
-                        >
-                          {String(m.content ?? "").replace("[[download-generated-files-zip]]", "")}
-                        </ReactMarkdown>
-                      </div>
-                    )}
-                    {m.role === "assistant" && (
-                      <GeneratedFiles content={m.content} onError={setSendError} />
-                    )}
-                    {m.role === "assistant" && Array.isArray(m.sources) && m.sources.length > 0 && (
-                      <div className="chat-message-sources">
-                        <span>Sources:</span>
-                        {m.sources.map((source) => (
-                          <span className="chat-message-source" key={source}>{source}</span>
-                        ))}
-                      </div>
-                    )}
+                  return (
+                    <div key={idx} className={`chat-message ${m.role}`}>
+                      {m.role === "user" ? (
+                        <>
+                          <div className="chat-message-content">{m.content}</div>
+                          {projectFiles.length > 0 && (
+                            <details className="chat-message-files">
+                              <summary>Files ({projectFiles.length})</summary>
+                              <ul>
+                                {projectFiles.map((file, fileIndex) => (
+                                  <li key={`${file.FileLocation || file.filename}-${fileIndex}`}>
+                                    {file.FileLocation || file.filename}
+                                  </li>
+                                ))}
+                              </ul>
+                            </details>
+                          )}
+                        </>
+                      ) : (
+                        <div className="chat-message-content chat-markdown">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              pre: ({ node, children, ...props }) => {
+                                const classNames = node?.children?.[0]?.properties?.className;
+                                const language = Array.isArray(classNames)
+                                  ? classNames.find((name) => name.startsWith("language-"))
+                                  : "";
+                                if (language?.startsWith("language-file:")) return null;
+                                return <MarkdownPre node={node} {...props}>{children}</MarkdownPre>;
+                              },
+                            }}
+                          >
+                            {String(m.content ?? "").replace("[[download-generated-files-zip]]", "")}
+                          </ReactMarkdown>
+                        </div>
+                      )}
+                      {m.role === "assistant" && (
+                        <GeneratedFiles content={m.content} onError={setSendError} />
+                      )}
+                      {m.role === "assistant" && Array.isArray(m.sources) && m.sources.length > 0 && (
+                        <div className="chat-message-sources">
+                          <span>Sources:</span>
+                          {m.sources.map((source) => (
+                            <span className="chat-message-source" key={source}>{source}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {isSending && (
+                  <div className="chat-message assistant typing-indicator" role="status">
+                    <LoadingContent />
                   </div>
-                );
-              })}
-              {isSending && (
-                <div className="chat-message assistant typing-indicator" role="status">
-                 <LoadingContent/>
-                </div>
-              )}
+                )}
+              </div>
+            )}
+            {/* Bottom Docked Input */}
+            <div className={`input-dock${messages.length === 0 ? " input-dock-centered" : ""}`}>
+              <Input onSendMessage={handleSendMessage} isLoading={isSending} />
             </div>
-          )}
-
-          {/* Bottom Docked Input */}
-          <div className={`input-dock${messages.length === 0 ? " input-dock-centered" : ""}`}>
-            <Input onSendMessage={handleSendMessage} isLoading={isSending} />
           </div>
         </div>
       </div>
